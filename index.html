@@ -216,13 +216,17 @@
 
             const handlePaystack = (amount, metadata, onSuccess) => {
                 if (!window.PaystackPop) return;
+
+                const PROCESSING_FEE_RATE = 0.0195; // 1.95%
+                const amountWithFee = amount + (amount * PROCESSING_FEE_RATE);
+
                 const handler = window.PaystackPop.setup({
                     key: PAYSTACK_PUBLIC_KEY,
                     email: profile?.email || user?.email,
-                    amount: Math.round(amount * 100),
+                    amount: Math.round(amountWithFee * 100),
                     currency: "GHS",
                     callback: onSuccess,
-                    metadata: { custom_fields: metadata }
+                    metadata: { custom_fields: metadata, processing_fee: (amount * 0.0195).toFixed(2) }
                 });
                 handler.openIframe();
             };
@@ -440,8 +444,8 @@
                                         {myOrders.map(o => (
                                             <div key={o.id} className="glass card-glow p-5 rounded-[2rem] flex justify-between items-center">
                                                 <div className="flex gap-4 items-center">
-                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${o.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
-                                                        <Icon name={o.status === 'completed' ? 'check-circle' : 'loader-2'} size={20} className={o.status !== 'completed' ? 'animate-spin' : ''} />
+                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${o.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                                        <Icon name={o.status === 'delivered' ? 'check-circle' : 'loader-2'} size={20} className={o.status !== 'delivered' ? 'animate-spin' : ''} />
                                                     </div>
                                                     <div>
                                                         <p className="font-black text-sm">{o.recipientNumber}</p>
@@ -451,12 +455,12 @@
                                                 <div className="text-right">
                                                     <p className="font-black text-sm text-emerald-400">₵{o.price.toFixed(2)}</p>
                                                     <div className={`text-[8px] font-black uppercase px-2 py-1 rounded-md mt-1 inline-flex items-center gap-1 ${
-                                                        o.status === 'completed' 
+                                                        o.status === 'delivered' 
                                                         ? 'bg-emerald-500/10 text-emerald-500' 
                                                         : 'bg-orange-500/10 text-orange-500 animate-pulse-soft'
                                                     }`}>
-                                                        <span className={`w-1 h-1 rounded-full ${o.status === 'completed' ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
-                                                        {o.status}
+                                                        <span className={`w-1 h-1 rounded-full ${o.status === 'delivered' ? 'bg-emerald-500' : 'bg-orange-500'}`}></span>
+                                                        {o.status === 'delivered' ? 'Delivered' : 'Processing'}
                                                     </div>
                                                 </div>
                                             </div>
