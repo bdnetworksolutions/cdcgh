@@ -18,62 +18,43 @@
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .gradient-text { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .animate-pop-in { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        
-        .bundle-item {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-        .bundle-item.active {
-            border-color: #6366f1;
-            background: rgba(99, 102, 241, 0.15);
-            transform: scale(1.02);
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
-        }
-
-        @media (max-width: 380px) {
-            .grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
+        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.03); }
+        .gradient-text { background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .bundle-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .bundle-item.active { background: rgba(79, 70, 229, 0.15); border-color: rgba(99, 102, 241, 0.5); transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3); }
+        @keyframes pop-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-pop-in { animation: pop-in 0.3s ease-out forwards; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
-        window.FirebaseSDK = { initializeApp, getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, signInWithCustomToken, signInAnonymously, getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc, onSnapshot, increment };
-    </script>
+    <script type="text/javascript" src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app-compat.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth-compat.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore-compat.js"></script>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
         const Icon = ({ name, size = 24, className = "" }) => {
             const icons = {
-                'smartphone': <path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm5 18h.01" />,
-                'history': <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8m0 0V4m0 4h4m5 4V7m0 5H8" />,
-                'settings': <path d="M12.22 2h-.44a2 2 0 0 0-2 2l-.27 1.27a8.73 8.73 0 0 0-1.81.73l-1.21-.46a2 2 0 0 0-2.5 1.1l-.22.44a2 2 0 0 0 1.1 2.5l1.21.46c.07.6.13 1.2.13 1.81s-.06 1.21-.13 1.81l-1.21.46a2 2 0 0 0-1.1 2.5l.22.44a2 2 0 0 0 2.5 1.1l1.21-.46a8.73 8.73 0 0 0 1.81.73l.27 1.27a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2l.27-1.27a8.73 8.73 0 0 0 1.81-.73l1.21.46a2 2 0 0 0 2.5-1.1l.22-.44a2 2 0 0 0-1.1-2.5l-1.21-.46c-.07-.6-.13-1.2-.13-1.81s.06-1.21.13-1.81l1.21-.46a2 2 0 0 0 1.1-2.5l-.22-.44a2 2 0 0 0-2.5-1.1l-1.21.46a8.73 8.73 0 0 0 1.81-.73l-.27-1.27a2 2 0 0 0-2-2zM12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" />,
-                'plus': <path d="M12 5v14M5 12h14" />,
-                'trash-2': <React.Fragment><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" /></React.Fragment>,
-                'chevron-right': <path d="m9 18 6-6-6-6" />,
-                'loader-2': <path d="M21 12a9 9 0 1 1-6.219-8.56" />,
-                'eye': <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Zm10-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />,
-                'eye-off': <React.Fragment><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24m-7.93-3.05C4.05 12.51 2 12 2 12s3-7 10-7c1.47 0 2.84.34 4.07.94m4.6 4.6c.86 1.02 1.33 1.46 1.33 1.46s-3 7-10 7a8.7 8.7 0 0 1-4.66-1.34M2 2l20 20" /></React.Fragment>,
-                'shopping-cart': <React.Fragment><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></React.Fragment>,
-                'check-circle': <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4L12 14.01l-3-3" />,
-                'credit-card': <React.Fragment><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></React.Fragment>,
-                'user': <React.Fragment><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></React.Fragment>,
-                'message-circle': <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                'shopping-cart': <><path d="m2 7 4.41-1.1a2 2 0 0 1 2.45 1.51l.3 1.2a2 2 0 0 1-1.99 2.49h-3.6a2 2 0 0 1-1.99-2.49l.3-1.2A2 2 0 0 1 4.41 5.91l4.41-1.1"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/><path d="M7 11V7l2-2h8l2 2v4"/><path d="M21 11v8h-4"/><path d="M3 11v8h4"/></>,
+                'smartphone': <><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></>,
+                'history': <><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></>,
+                'credit-card': <><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></>,
+                'user': <><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+                'plus': <><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></>,
+                'chevron-right': <path d="m9 18 6-6-6-6"/>,
+                'trash-2': <><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></>,
+                'loader-2': <path d="M21 12a9 9 0 1 1-6.219-8.56"/>,
+                'check-circle': <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>,
+                'eye': <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+                'eye-off': <><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></>,
+                'message-circle': <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
             };
-
             return (
-                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${className} ${name === 'loader-2' ? 'animate-spin' : ''}`}>
-                    {icons[name] || null}
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {icons[name]}
                 </svg>
             );
         };
@@ -92,9 +73,9 @@
         const PAYSTACK_PUBLIC_KEY = "pk_live_8e753f43f8defed950965395fc04f5dc7ab1035b";
 
         const DATA_BUNDLES = [
-            { id: '1gb', name: '1GB', price: 4.60 }, { id: '2gb', name: '2GB', price: 9.50 },
+            { id: '1gb', name: '1GB', price: 4.60 }, { id: '2gb', name: '2GB', price: 9.20 },
             { id: '3gb', name: '3GB', price: 13.50 }, { id: '4gb', name: '4GB', price: 18.00 },
-            { id: '5gb', name: '5GB', price: 22.20 }, { id: '6gb', name: '6GB', price: 27.00 },
+            { id: '5gb', name: '5GB', price: 22.00 }, { id: '6gb', name: '6GB', price: 27.00 },
             { id: '8gb', name: '8GB', price: 36.00 }, { id: '10gb', name: '10GB', price: 43.00 },
             { id: '15gb', name: '15GB', price: 63.00 }, { id: '20gb', name: '20GB', price: 83.00 },
             { id: '30gb', name: '30GB', price: 122.00 },
@@ -120,6 +101,8 @@
             
             const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             const [showDepositModal, setShowDepositModal] = useState(false);
+            const [depositSuccess, setDepositSuccess] = useState(false);
+            const [orderSuccess, setOrderSuccess] = useState(false);
             const [depositAmount, setDepositAmount] = useState("");
 
             const [editName, setEditName] = useState("");
@@ -130,17 +113,28 @@
             const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.price, 0), [cart]);
 
             useEffect(() => {
+                const handlePopState = (event) => {
+                    if (showCheckoutModal) { setShowCheckoutModal(false); return; }
+                    if (showDepositModal) { setShowDepositModal(false); setDepositSuccess(false); return; }
+                    if (orderSuccess) { setOrderSuccess(false); return; }
+                    if (activeTab !== 'home') { setActiveTab('home'); return; }
+                };
+                window.addEventListener('popstate', handlePopState);
+                if (window.history.state !== 'app-running') window.history.pushState('app-running', '');
+                return () => window.removeEventListener('popstate', handlePopState);
+            }, [showCheckoutModal, showDepositModal, orderSuccess, activeTab]);
+
+            useEffect(() => {
                 const checkFirebase = setInterval(() => {
-                    if (window.FirebaseSDK) { setFb(window.FirebaseSDK); clearInterval(checkFirebase); }
+                    if (window.firebase) { setFb(window.firebase); clearInterval(checkFirebase); }
                 }, 100);
                 return () => clearInterval(checkFirebase);
             }, []);
 
             useEffect(() => {
                 if (!fb) return;
-                const app = fb.initializeApp(firebaseConfig);
-                const auth = fb.getAuth(app);
-                const unsubscribe = fb.onAuthStateChanged(auth, (u) => {
+                fb.initializeApp(firebaseConfig);
+                const unsubscribe = fb.auth().onAuthStateChanged((u) => {
                     setUser(u);
                     if (!u) { setLoading(false); setProfile(null); }
                 });
@@ -149,29 +143,36 @@
 
             useEffect(() => {
                 if (!user || !fb) return;
-                const db = fb.getFirestore();
-                const userRef = fb.doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid);
-                const unsubProfile = fb.onSnapshot(userRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        setProfile(data);
-                        setEditName(data.name || "");
-                    } else { setProfile({ isProfileComplete: false }); }
-                    setLoading(false);
-                }, () => setLoading(false));
-
-                const ordersRef = fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders');
-                const txRef = fb.collection(db, 'artifacts', appId, 'public', 'data', 'transactions');
+                const db = fb.firestore();
                 
-                const unsubTx = fb.onSnapshot(txRef, (snap) => {
-                    const allTx = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    setTransactions(allTx.filter(t => t.userId === user.uid).sort((a,b) => b.timestamp - a.timestamp));
-                });
+                const unsubProfile = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid)
+                    .onSnapshot((docSnap) => {
+                        if (docSnap.exists) {
+                            const data = docSnap.data();
+                            setProfile(data);
+                            setEditName(data.name || "");
+                        } else { setProfile({ isProfileComplete: false }); }
+                        setLoading(false);
+                    }, () => setLoading(false));
 
-                const unsubOrders = fb.onSnapshot(ordersRef, (snapshot) => {
-                    const all = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    setMyOrders(all.filter(o => o.userId === user.uid).sort((a,b) => b.timestamp - a.timestamp));
-                });
+                const unsubOrders = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('orders')
+                    .onSnapshot((snapshot) => {
+                        const allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        const filtered = allOrders
+                            .filter(o => o.userId === user.uid)
+                            .sort((a, b) => b.timestamp - a.timestamp);
+                        setMyOrders(filtered);
+                    });
+
+                const unsubTx = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions')
+                    .onSnapshot((snapshot) => {
+                        const allTx = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        const filtered = allTx
+                            .filter(tx => tx.userId === user.uid)
+                            .sort((a, b) => b.timestamp - a.timestamp);
+                        setTransactions(filtered);
+                    });
+
                 return () => { unsubProfile(); unsubOrders(); unsubTx(); };
             }, [user, fb]);
 
@@ -188,38 +189,38 @@
                 const fd = new FormData(e.target);
                 const email = fd.get('email').trim();
                 const password = fd.get('password');
-                const auth = fb.getAuth();
-                const db = fb.getFirestore();
-
+                const auth = fb.auth();
+                const db = fb.firestore();
                 try {
                     if (isLogin) {
-                        await fb.signInWithEmailAndPassword(auth, email, password);
+                        await auth.signInWithEmailAndPassword(email, password);
                     } else {
-                        const userCred = await fb.createUserWithEmailAndPassword(auth, email, password);
-                        await fb.setDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'users', userCred.user.uid), {
-                            name: fd.get('name')?.trim(), phone: fd.get('phone')?.trim(), email,
-                            walletBalance: 0, createdAt: Date.now(), uid: userCred.user.uid, isProfileComplete: true
+                        const userCred = await auth.createUserWithEmailAndPassword(email, password);
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(userCred.user.uid).set({
+                            name: fd.get('name')?.trim(), 
+                            phone: fd.get('phone')?.trim(), 
+                            email,
+                            walletBalance: 0, 
+                            createdAt: Date.now(), 
+                            uid: userCred.user.uid, 
+                            isProfileComplete: true
                         });
                     }
-                } catch (err) { setAuthError(err.message); } 
-                finally { setAuthLoading(false); }
+                } catch (err) { setAuthError(err.message); } finally { setAuthLoading(false); }
             };
 
             const handleUpdateProfile = async (e) => {
                 e.preventDefault();
                 setProfileLoading(true); setProfileMsg({ text: "", type: "" });
-                const db = fb.getFirestore();
-                const auth = fb.getAuth();
+                const db = fb.firestore();
                 try {
-                    await fb.updateDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid), { name: editName });
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({ name: editName });
                     if (editPass) {
-                        await fb.updatePassword(auth.currentUser, editPass);
+                        await fb.auth().currentUser.updatePassword(editPass);
                         setEditPass("");
                     }
                     setProfileMsg({ text: "Profile updated successfully!", type: "success" });
-                } catch (err) {
-                    setProfileMsg({ text: err.message, type: "error" });
-                } finally { setProfileLoading(false); }
+                } catch (err) { setProfileMsg({ text: err.message, type: "error" }); } finally { setProfileLoading(false); }
             };
 
             const addToCart = () => {
@@ -238,26 +239,52 @@
             const finalizeOrders = async (method) => {
                 if (cart.length === 0) return;
                 setProcessingOrder(true);
-                const db = fb.getFirestore();
+                const db = fb.firestore();
                 try {
-                    const orderPromises = cart.map(item => fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'orders'), {
-                        userId: user.uid, recipientNumber: item.phone, bundleName: item.bundleName,
-                        price: item.price, status: 'processing', paymentMethod: method, timestamp: Date.now()
+                    const orderPromises = cart.map(item => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('orders').add({
+                        userId: user.uid,
+                        recipientNumber: item.phone,
+                        bundleName: item.bundleName,
+                        price: item.price,
+                        status: 'pending',
+                        network: 'MTN',
+                        service: 'Data Purchase',
+                        paymentMethod: method,
+                        timestamp: Date.now()
                     }));
                     await Promise.all(orderPromises);
                     if (method === 'wallet') {
-                        await fb.updateDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid), { 
-                            walletBalance: fb.increment(-cartTotal) 
+                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({ 
+                            walletBalance: fb.firestore.FieldValue.increment(-cartTotal) 
                         });
                     }
-                    setCart([]); setShowCheckoutModal(false); setActiveTab('orders');
-                } catch (err) { console.error(err); } 
-                finally { setProcessingOrder(false); }
+                    setCart([]); 
+                    setShowCheckoutModal(false); 
+                    setOrderSuccess(true);
+                } catch (err) { console.error(err); } finally { setProcessingOrder(false); }
+            };
+
+            const clearOldOrders = async () => {
+                const db = fb.firestore();
+                const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                const batch = db.batch();
+                
+                const oldOrders = myOrders.filter(o => o.timestamp < oneWeekAgo);
+                oldOrders.forEach(o => {
+                    const ref = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('orders').doc(o.id);
+                    batch.delete(ref);
+                });
+                
+                try {
+                    await batch.commit();
+                } catch (err) {
+                    console.error("Delete error:", err);
+                }
             };
 
             if (loading || !fb) return (
                 <div className="min-h-screen flex items-center justify-center bg-[#020617]">
-                    <Icon name="loader-2" className="text-indigo-500 w-12 h-12 relative" />
+                    <Icon name="loader-2" className="text-indigo-500 w-12 h-12 animate-spin" />
                 </div>
             );
 
@@ -276,18 +303,18 @@
                             <form onSubmit={handleAuth} className="space-y-4">
                                 {!isLogin && (
                                     <React.Fragment>
-                                        <input name="name" required placeholder="Full Name" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm" />
-                                        <input name="phone" required placeholder="Phone Number" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm" />
+                                        <input name="name" required placeholder="Full Name" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm text-white" />
+                                        <input name="phone" required placeholder="Phone Number" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm text-white" />
                                     </React.Fragment>
                                 )}
-                                <input name="email" type="email" required placeholder="Email Address" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm" />
+                                <input name="email" type="email" required placeholder="Email Address" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm text-white" />
                                 <div className="relative">
-                                    <input name="password" type={showPassword ? "text" : "password"} required placeholder="Password" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm" />
+                                    <input name="password" type={showPassword ? "text" : "password"} required placeholder="Password" className="w-full bg-slate-900 border border-white/5 p-4 rounded-2xl outline-none text-sm text-white" />
                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-4 text-slate-500"><Icon name={showPassword ? "eye-off" : "eye"} size={20} /></button>
                                 </div>
                                 {authError && <p className="text-red-400 text-[10px] font-bold bg-red-400/10 p-4 rounded-2xl text-center">{authError}</p>}
                                 <button disabled={authLoading} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-black uppercase text-xs transition-all shadow-xl shadow-indigo-600/30 text-white">
-                                    {authLoading ? <Icon name="loader-2" size={16} className="mx-auto" /> : (isLogin ? 'Sign In' : 'Create Account')}
+                                    {authLoading ? <Icon name="loader-2" size={16} className="mx-auto animate-spin" /> : (isLogin ? 'Sign In' : 'Create Account')}
                                 </button>
                             </form>
                         </div>
@@ -318,7 +345,7 @@
                                         <h2 className="text-4xl font-extrabold tracking-tighter">₵ {profile.walletBalance?.toFixed(2)}</h2>
                                     </div>
                                     <button onClick={() => setShowDepositModal(true)} className="relative bg-indigo-600 p-4 rounded-3xl active:scale-95 shadow-lg shadow-indigo-600/30">
-                                        <Icon name="plus" />
+                                        <Icon name="plus" className="text-white" />
                                     </button>
                                 </div>
 
@@ -338,12 +365,10 @@
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="flex flex-col gap-2 px-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-0.5 bg-indigo-500 flex-grow rounded-full opacity-20"></div>
-                                                <span className="text-[12px] font-black bg-indigo-600 text-white px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.4)] animate-pulse uppercase">MTN UP2U OFFERS</span>
-                                                <div className="h-0.5 bg-indigo-500 flex-grow rounded-full opacity-20"></div>
-                                            </div>
+                                        <div className="flex items-center gap-3 px-2">
+                                            <div className="h-0.5 bg-indigo-500 flex-grow rounded-full opacity-20"></div>
+                                            <span className="text-[10px] font-black bg-indigo-600 text-white px-4 py-1.5 rounded-full uppercase tracking-widest">MTN UP2U OFFERS</span>
+                                            <div className="h-0.5 bg-indigo-500 flex-grow rounded-full opacity-20"></div>
                                         </div>
                                         
                                         <div className="grid grid-cols-3 gap-3">
@@ -353,13 +378,8 @@
                                                     onClick={() => setSelectedBundleId(b.id)}
                                                     className={`bundle-item glass p-4 rounded-3xl flex flex-col items-center justify-center gap-1 border border-white/5 ${selectedBundleId === b.id ? 'active' : ''}`}
                                                 >
-                                                    <span className={`text-sm font-black ${selectedBundleId === b.id ? 'text-indigo-400' : ''}`}>{b.name}</span>
+                                                    <span className={`text-sm font-black ${selectedBundleId === b.id ? 'text-indigo-400' : 'text-slate-200'}`}>{b.name}</span>
                                                     <span className="text-[10px] font-bold text-slate-500 tracking-tighter">₵{b.price.toFixed(1)}</span>
-                                                    {selectedBundleId === b.id && (
-                                                        <div className="absolute top-1 right-1">
-                                                            <Icon name="check-circle" size={12} className="text-indigo-400" />
-                                                        </div>
-                                                    )}
                                                 </button>
                                             ))}
                                         </div>
@@ -369,7 +389,7 @@
                                         <button 
                                             onClick={addToCart}
                                             disabled={inputPhone.length !== 10}
-                                            className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 rounded-[2rem] font-black uppercase text-xs flex items-center justify-center gap-3 transition-all animate-pop-in text-white"
+                                            className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 rounded-[2rem] font-black uppercase text-xs flex items-center justify-center gap-3 transition-all animate-pop-in text-white shadow-xl shadow-indigo-600/20"
                                         >
                                             <Icon name="shopping-cart" size={18} />
                                             Add to Cart
@@ -388,13 +408,13 @@
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-10 h-10 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400"><Icon name="smartphone" size={16} /></div>
                                                     <div>
-                                                        <p className="font-bold text-sm">{item.phone}</p>
+                                                        <p className="font-bold text-sm text-white">{item.phone}</p>
                                                         <p className="text-[10px] text-slate-500 font-bold uppercase">{item.bundleName}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <p className="font-black text-sm text-emerald-400">₵{item.price.toFixed(2)}</p>
-                                                    <button onClick={() => setCart(cart.filter(i => i.tempId !== item.tempId))} className="p-2 text-slate-700 hover:text-red-400"><Icon name="trash-2" size={18} /></button>
+                                                    <button onClick={() => setCart(cart.filter(i => i.tempId !== item.tempId))} className="p-2 text-slate-700 hover:text-red-400 transition-colors"><Icon name="trash-2" size={18} /></button>
                                                 </div>
                                             </div>
                                         ))}
@@ -406,7 +426,10 @@
 
                         {activeTab === 'orders' && (
                             <div className="space-y-6 animate-pop-in">
-                                <h3 className="text-2xl font-black tracking-tight">Activity</h3>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-2xl font-black tracking-tight text-white">Activity</h3>
+                                    <button onClick={clearOldOrders} className="text-[10px] font-black bg-red-500/10 text-red-500 px-3 py-1.5 rounded-full uppercase tracking-tighter active:scale-95 transition-all">Clear 7D+ History</button>
+                                </div>
                                 {myOrders.length === 0 ? (
                                     <div className="glass p-12 rounded-[2.5rem] text-center space-y-4 border-dashed border-white/10 opacity-50">
                                         <Icon name="history" size={32} className="mx-auto" />
@@ -418,15 +441,15 @@
                                             <div key={o.id} className="glass p-5 rounded-[2rem] flex justify-between items-center border border-white/5">
                                                 <div className="flex gap-4 items-center">
                                                     <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${o.status === 'delivered' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
-                                                        <Icon name={o.status === 'delivered' ? 'check-circle' : 'loader-2'} size={18} />
+                                                        <Icon name={o.status === 'delivered' ? 'check-circle' : 'loader-2'} size={18} className={o.status !== 'delivered' ? 'animate-spin' : ''} />
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-sm">{o.recipientNumber}</p>
+                                                        <p className="font-black text-sm text-white">{o.recipientNumber}</p>
                                                         <p className="text-[10px] text-slate-500 font-bold uppercase">{o.bundleName} • {new Date(o.timestamp).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-black text-sm text-emerald-400">₵{o.price.toFixed(2)}</p>
+                                                    <p className="font-black text-sm text-emerald-400">₵{o.price?.toFixed(2)}</p>
                                                     <p className={`text-[8px] font-black uppercase ${o.status === 'delivered' ? 'text-emerald-500' : 'text-orange-500'}`}>{o.status}</p>
                                                 </div>
                                             </div>
@@ -438,18 +461,20 @@
 
                         {activeTab === 'transactions' && (
                             <div className="space-y-6 animate-pop-in">
-                                <h3 className="text-2xl font-black tracking-tight">Transfers</h3>
+                                <h3 className="text-2xl font-black tracking-tight text-white">Transfers</h3>
                                 <div className="space-y-3">
-                                    {transactions.map(tx => (
+                                    {transactions.length === 0 ? (
+                                        <p className="text-center text-slate-500 py-10 font-bold">No transfers found.</p>
+                                    ) : transactions.map(tx => (
                                         <div key={tx.id} className="glass p-5 rounded-[2rem] flex justify-between items-center border border-white/5">
                                             <div className="flex gap-4 items-center">
                                                 <div className="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center"><Icon name="plus" size={16} /></div>
                                                 <div>
-                                                    <p className="font-bold text-sm">Funds Added</p>
+                                                    <p className="font-bold text-sm text-white">Funds Added</p>
                                                     <p className="text-[10px] text-slate-500 font-bold uppercase">{new Date(tx.timestamp).toLocaleString()}</p>
                                                 </div>
                                             </div>
-                                            <p className="font-black text-emerald-400 text-sm">+₵{tx.amount.toFixed(2)}</p>
+                                            <p className="font-black text-emerald-400 text-sm">+₵{tx.amount?.toFixed(2)}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -458,7 +483,7 @@
 
                         {activeTab === 'settings' && (
                             <div className="space-y-8 pb-10 animate-pop-in">
-                                <h3 className="text-2xl font-black tracking-tight">Account Settings</h3>
+                                <h3 className="text-2xl font-black tracking-tight text-white">Account Settings</h3>
                                 
                                 <form onSubmit={handleUpdateProfile} className="space-y-6">
                                     <div className="glass rounded-[2.5rem] p-8 space-y-6 border border-white/5">
@@ -468,7 +493,7 @@
                                                 <input 
                                                     value={editName} 
                                                     onChange={(e) => setEditName(e.target.value)}
-                                                    className="w-full bg-slate-900/50 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold" 
+                                                    className="w-full bg-slate-900/50 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-white" 
                                                     placeholder="Your Full Name"
                                                 />
                                             </div>
@@ -480,7 +505,7 @@
                                                         type={showPassword ? "text" : "password"}
                                                         value={editPass}
                                                         onChange={(e) => setEditPass(e.target.value)}
-                                                        className="w-full bg-slate-900/50 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold" 
+                                                        className="w-full bg-slate-900/50 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-white" 
                                                         placeholder="Enter new password (optional)"
                                                     />
                                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-4 text-slate-500">
@@ -500,43 +525,42 @@
                                             disabled={profileLoading} 
                                             className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-black uppercase text-xs transition-all shadow-xl shadow-indigo-600/30 text-white"
                                         >
-                                            {profileLoading ? <Icon name="loader-2" size={16} className="mx-auto" /> : 'Update Profile'}
+                                            {profileLoading ? <Icon name="loader-2" size={16} className="mx-auto animate-spin" /> : 'Update Profile'}
                                         </button>
                                     </div>
                                 </form>
 
                                 <div className="glass rounded-[2.5rem] p-8 space-y-4 border border-white/5 text-center">
                                     <p className="text-[10px] font-black uppercase text-slate-600">Secure Access Only</p>
-                                    <button onClick={() => fb.getAuth().signOut()} className="w-full py-4 bg-red-500/10 text-red-500 rounded-2xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all">Sign Out</button>
+                                    <button onClick={() => fb.auth().signOut()} className="w-full py-4 bg-red-500/10 text-red-500 rounded-2xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all">Sign Out</button>
                                 </div>
                             </div>
                         )}
                     </main>
 
-                    {/* CUSTOMER SUPPORT FAB WITH UPDATED WHATSAPP LINK */}
                     <a 
                         href="https://wa.me/233535905990" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="fixed bottom-32 right-6 w-14 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl shadow-emerald-500/40 z-[90] active:scale-90 transition-transform"
+                        className="fixed bottom-32 right-6 pl-5 pr-6 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl shadow-emerald-500/40 z-[90] active:scale-90 transition-transform gap-2"
                     >
-                        <Icon name="message-circle" size={28} />
+                        <Icon name="message-circle" size={24} />
+                        <span className="font-black uppercase text-[10px] tracking-widest pt-0.5">Help</span>
                         <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-[#020617] animate-pulse"></span>
                     </a>
 
-                    {/* MODALS */}
                     {showCheckoutModal && (
                         <div className="fixed inset-0 bg-[#020617]/95 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                             <div className="glass w-full max-w-sm rounded-[3rem] p-10 space-y-8 animate-pop-in border border-white/10">
                                 <div className="text-center space-y-2">
                                     <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">CONFIRM TOTAL</p>
-                                    <h3 className="font-black text-4xl italic">₵{cartTotal.toFixed(2)}</h3>
+                                    <h3 className="font-black text-4xl italic text-white">₵{cartTotal.toFixed(2)}</h3>
                                 </div>
                                 <div className="space-y-3">
                                     <button disabled={profile.walletBalance < cartTotal} onClick={() => finalizeOrders('wallet')} className="w-full p-5 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 flex justify-between items-center transition-all disabled:opacity-30 group text-white">
                                         <div className="flex flex-col items-start text-left">
                                             <span className="font-black text-sm">Wallet Balance</span>
-                                            <span className="text-[10px] font-bold text-slate-500 group-disabled:text-red-400">Available: ₵{profile.walletBalance.toFixed(2)}</span>
+                                            <span className="text-[10px] font-bold text-slate-500 group-disabled:text-red-400">Available: ₵{profile.walletBalance?.toFixed(2)}</span>
                                         </div>
                                         <Icon name="chevron-right" size={18} />
                                     </button>
@@ -545,7 +569,7 @@
                                          const handler = window.PaystackPop.setup({
                                             key: PAYSTACK_PUBLIC_KEY,
                                             email: profile?.email || user?.email,
-                                            amount: Math.round(cartTotal * 101.95),
+                                            amount: Math.round(cartTotal * 100),
                                             currency: "GHS",
                                             callback: () => finalizeOrders('paystack')
                                          });
@@ -560,35 +584,78 @@
                         </div>
                     )}
 
+                    {orderSuccess && (
+                        <div className="fixed inset-0 bg-[#020617]/95 z-[200] flex items-center justify-center p-6 backdrop-blur-lg">
+                            <div className="glass w-full max-w-xs rounded-[2.5rem] p-10 text-center space-y-6 animate-pop-in">
+                                <div className="w-20 h-20 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
+                                    <Icon name="check-circle" size={40} />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-black text-white uppercase tracking-tighter">Order Successful!</h3>
+                                    <p className="text-slate-500 text-[11px] font-bold uppercase leading-relaxed">Your data bundle is being delivered. Check your history for updates.</p>
+                                </div>
+                                <button 
+                                    onClick={() => { setOrderSuccess(false); setActiveTab('orders'); }} 
+                                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs shadow-xl shadow-indigo-600/30 active:scale-95 transition-all"
+                                >
+                                    View History
+                                </button>
+                                <button onClick={() => setOrderSuccess(false)} className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Close</button>
+                            </div>
+                        </div>
+                    )}
+
                     {showDepositModal && (
                         <div className="fixed inset-0 bg-[#020617]/95 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                             <div className="glass w-full max-w-sm rounded-[3rem] p-10 space-y-8 animate-pop-in border border-white/10">
-                                <h3 className="font-black text-2xl text-center">Topup Wallet</h3>
-                                <div className="space-y-4">
-                                    <div className="bg-slate-900/50 rounded-2xl p-6">
-                                        <input type="number" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} placeholder="0.00" className="w-full bg-transparent p-0 font-black text-4xl text-center outline-none text-emerald-400" />
+                                {depositSuccess ? (
+                                    <div className="text-center space-y-4 py-10 animate-pop-in">
+                                        <div className="w-20 h-20 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Icon name="check-circle" size={48} />
+                                        </div>
+                                        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Deposit Successful</h3>
+                                        <p className="text-slate-500 text-sm font-bold">Your wallet balance has been updated.</p>
                                     </div>
-                                    <button onClick={() => {
-                                        if (!window.PaystackPop || !depositAmount) return;
-                                        const amount = parseFloat(depositAmount);
-                                        const handler = window.PaystackPop.setup({
-                                            key: PAYSTACK_PUBLIC_KEY,
-                                            email: profile?.email || user?.email,
-                                            amount: Math.round(amount * 101.95),
-                                            currency: "GHS",
-                                            callback: async () => {
-                                                const db = fb.getFirestore();
-                                                await fb.updateDoc(fb.doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid), { walletBalance: fb.increment(amount) });
-                                                await fb.addDoc(fb.collection(db, 'artifacts', appId, 'public', 'data', 'transactions'), {
-                                                    userId: user.uid, amount, timestamp: Date.now()
+                                ) : (
+                                    <React.Fragment>
+                                        <h3 className="font-black text-2xl text-center text-white">Topup Wallet</h3>
+                                        <div className="space-y-4">
+                                            <div className="bg-slate-900/50 rounded-2xl p-6">
+                                                <input type="number" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} placeholder="0.00" className="w-full bg-transparent p-0 font-black text-4xl text-center outline-none text-emerald-400" />
+                                            </div>
+                                            <button onClick={() => {
+                                                if (!window.PaystackPop || !depositAmount) return;
+                                                const amount = parseFloat(depositAmount);
+                                                const handler = window.PaystackPop.setup({
+                                                    key: PAYSTACK_PUBLIC_KEY,
+                                                    email: profile?.email || user?.email,
+                                                    amount: Math.round(amount * 100),
+                                                    currency: "GHS",
+                                                    callback: async () => {
+                                                        const db = fb.firestore();
+                                                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({ 
+                                                            walletBalance: fb.firestore.FieldValue.increment(amount) 
+                                                        });
+                                                        await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').add({
+                                                            userId: user.uid,
+                                                            amount: amount,
+                                                            type: 'deposit',
+                                                            timestamp: Date.now()
+                                                        });
+                                                        setDepositSuccess(true);
+                                                        setTimeout(() => {
+                                                            setDepositSuccess(false);
+                                                            setShowDepositModal(false);
+                                                            setDepositAmount("");
+                                                        }, 2500);
+                                                    }
                                                 });
-                                                setShowDepositModal(false); setDepositAmount("");
-                                            }
-                                        });
-                                        handler.openIframe();
-                                    }} className="w-full py-5 bg-indigo-600 rounded-2xl font-black uppercase shadow-xl shadow-indigo-600/20 text-white">Deposit Securely</button>
-                                </div>
-                                <button onClick={() => setShowDepositModal(false)} className="w-full text-slate-500 font-black uppercase text-[10px] text-center block">Cancel</button>
+                                                handler.openIframe();
+                                            }} className="w-full py-5 bg-indigo-600 rounded-2xl font-black uppercase shadow-xl shadow-indigo-600/20 text-white">Deposit Securely</button>
+                                        </div>
+                                        <button onClick={() => setShowDepositModal(false)} className="w-full text-slate-500 font-black uppercase text-[10px] text-center block">Cancel</button>
+                                    </React.Fragment>
+                                )}
                             </div>
                         </div>
                     )}
@@ -602,7 +669,7 @@
 
                     {processingOrder && (
                         <div className="fixed inset-0 bg-[#020617]/95 z-[300] flex flex-col items-center justify-center gap-4">
-                            <Icon name="loader-2" size={64} className="text-indigo-500" />
+                            <Icon name="loader-2" size={64} className="text-indigo-500 animate-spin" />
                             <p className="font-black uppercase text-[10px] text-indigo-400 tracking-widest animate-pulse">Confirming Payment...</p>
                         </div>
                     )}
