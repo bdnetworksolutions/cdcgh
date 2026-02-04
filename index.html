@@ -71,6 +71,7 @@
 
         const appId = "cheap-data-center";
         const PAYSTACK_PUBLIC_KEY = "pk_live_8e753f43f8defed950965395fc04f5dc7ab1035b";
+        const TRANSACTION_FEE_PERCENT = 0.02; // 2% fee
 
         const DATA_BUNDLES = [
             { id: '1gb', name: '1GB', price: 4.60 }, { id: '2gb', name: '2GB', price: 9.20 },
@@ -564,18 +565,24 @@
                                         </div>
                                         <Icon name="chevron-right" size={18} />
                                     </button>
+                                    
                                     <button onClick={() => {
                                          if (!window.PaystackPop) return;
+                                         const fee = cartTotal * TRANSACTION_FEE_PERCENT;
+                                         const finalAmount = cartTotal + fee;
                                          const handler = window.PaystackPop.setup({
                                             key: PAYSTACK_PUBLIC_KEY,
                                             email: profile?.email || user?.email,
-                                            amount: Math.round(cartTotal * 100),
+                                            amount: Math.round(finalAmount * 100),
                                             currency: "GHS",
                                             callback: () => finalizeOrders('paystack')
                                          });
                                          handler.openIframe();
-                                    }} className="w-full p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 flex justify-between items-center transition-all text-white">
-                                        <span className="font-black text-sm">Pay via MoMo/Card</span>
+                                    }} className="w-full p-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 flex justify-between items-center transition-all text-white group">
+                                        <div className="flex flex-col items-start text-left">
+                                            <span className="font-black text-sm">Pay via MoMo/Card</span>
+                                            <span className="text-[9px] font-bold text-emerald-500/60 uppercase">Incl. 2% fee (₵{(cartTotal * TRANSACTION_FEE_PERCENT).toFixed(2)})</span>
+                                        </div>
                                         <Icon name="chevron-right" size={18} />
                                     </button>
                                 </div>
@@ -622,23 +629,31 @@
                                         <div className="space-y-4">
                                             <div className="bg-slate-900/50 rounded-2xl p-6">
                                                 <input type="number" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} placeholder="0.00" className="w-full bg-transparent p-0 font-black text-4xl text-center outline-none text-emerald-400" />
+                                                {depositAmount && (
+                                                    <p className="text-[9px] font-black text-center text-slate-500 uppercase mt-4 tracking-widest">
+                                                        Total: ₵{(parseFloat(depositAmount) + (parseFloat(depositAmount) * TRANSACTION_FEE_PERCENT)).toFixed(2)} (Incl. 2% fee)
+                                                    </p>
+                                                )}
                                             </div>
                                             <button onClick={() => {
                                                 if (!window.PaystackPop || !depositAmount) return;
-                                                const amount = parseFloat(depositAmount);
+                                                const baseAmount = parseFloat(depositAmount);
+                                                const fee = baseAmount * TRANSACTION_FEE_PERCENT;
+                                                const finalAmount = baseAmount + fee;
+                                                
                                                 const handler = window.PaystackPop.setup({
                                                     key: PAYSTACK_PUBLIC_KEY,
                                                     email: profile?.email || user?.email,
-                                                    amount: Math.round(amount * 100),
+                                                    amount: Math.round(finalAmount * 100),
                                                     currency: "GHS",
                                                     callback: async () => {
                                                         const db = fb.firestore();
                                                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({ 
-                                                            walletBalance: fb.firestore.FieldValue.increment(amount) 
+                                                            walletBalance: fb.firestore.FieldValue.increment(baseAmount) 
                                                         });
                                                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('transactions').add({
                                                             userId: user.uid,
-                                                            amount: amount,
+                                                            amount: baseAmount,
                                                             type: 'deposit',
                                                             timestamp: Date.now()
                                                         });
