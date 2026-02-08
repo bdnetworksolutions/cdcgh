@@ -24,6 +24,14 @@
         .bundle-item.active { background: rgba(79, 70, 229, 0.15); border-color: rgba(99, 102, 241, 0.5); transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3); }
         @keyframes pop-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
         .animate-pop-in { animation: pop-in 0.3s ease-out forwards; }
+        @keyframes pulse-warning { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+        }
+        .animate-pulse-warning { animation: pulse-warning 1s ease-in-out infinite; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 10px; font-weight: 900; }
+        .badge-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .badge-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
     </style>
 </head>
 <body>
@@ -50,7 +58,19 @@
                 'check-circle': <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>,
                 'eye': <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
                 'eye-off': <><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></>,
-                'message-circle': <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
+                'message-circle': <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>,
+                'wifi-off': <><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0"/><path d="M12.5 13a9 9 0 0 1 9.8 1M1 9a16 16 0 0 1 19 0"/></>,
+                'alert-circle': <><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></>,
+                'link': <><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></>,
+                'copy': <><path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2Z"/><path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/></>,
+                'trending-up': <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
+                'wallet': <><rect width="18" height="12" x="3" y="6" rx="2"/><path d="M7 9h0M7 13h0"/></>,
+                'send': <><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 2 22 9 22 2"/></>,
+                'check': <path d="M20 6 9 17l-5-5"/>,
+                'settings': <><circle cx="12" cy="12" r="3"/><path d="M12 1v6m4.22-4.22-4.24 4.24m4.24 4.24-4.24-4.24M12 17v6m4.22-1.78-4.24-4.24m4.24-4.24-4.24 4.24M1 12h6m4.22-4.22-4.24 4.24m4.24 4.24-4.24-4.24m4.24-4.24-4.24 4.24M17 12h6"/></>,
+                'star': <polygon points="12 2 15.09 10.26 24 10.26 17.55 16.52 19.64 24.78 12 18.52 4.36 24.78 6.45 16.52 0 10.26 8.91 10.26 12 2"/>,
+                'rocket': <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74.5 5 2c.5.5 1 2 2 2s1.5-1.5 2-2c1.26-1.5 5-5 5-5m-15-3h.01M1 6v12a3 3 0 0 0 3 3h4l3-9 3 9h4a3 3 0 0 0 3-3V6a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4z"/>,
+                'x': <line x1="18" x2="6" y1="6" y2="18"/>,
             };
             return (
                 <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -71,9 +91,9 @@
 
         const appId = "cheap-data-center";
         const PAYSTACK_PUBLIC_KEY = "pk_live_8e753f43f8defed950965395fc04f5dc7ab1035b";
-        const TRANSACTION_FEE_PERCENT = 0.02; // 2% fee
+        const TRANSACTION_FEE_PERCENT = 0.02;
 
-        const DATA_BUNDLES = [
+        const DEFAULT_BUNDLES = [
             { id: '1gb', name: '1GB', price: 4.60 }, { id: '2gb', name: '2GB', price: 9.20 },
             { id: '3gb', name: '3GB', price: 13.50 }, { id: '4gb', name: '4GB', price: 18.00 },
             { id: '5gb', name: '5GB', price: 22.00 }, { id: '6gb', name: '6GB', price: 27.00 },
@@ -95,13 +115,22 @@
             const [showPassword, setShowPassword] = useState(false);
             const [authLoading, setAuthLoading] = useState(false);
             const [authError, setAuthError] = useState("");
+            const [networkLocked, setNetworkLocked] = useState(false);
+            const [networkCheckLoading, setNetworkCheckLoading] = useState(true);
             
             const [cart, setCart] = useState([]); 
             const [inputPhone, setInputPhone] = useState("");
             const [selectedBundleId, setSelectedBundleId] = useState("");
+            const [bundles, setBundles] = useState(DEFAULT_BUNDLES);
+            const [isReseller, setIsReseller] = useState(false);
+            const [resellerId, setResellerId] = useState(null);
+            const [isUsingReferralLink, setIsUsingReferralLink] = useState(false);
             
             const [showCheckoutModal, setShowCheckoutModal] = useState(false);
             const [showDepositModal, setShowDepositModal] = useState(false);
+            const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+            const [showPriceEditor, setShowPriceEditor] = useState(false);
+            const [showBecomeReseller, setShowBecomeReseller] = useState(false);
             const [depositSuccess, setDepositSuccess] = useState(false);
             const [orderSuccess, setOrderSuccess] = useState(false);
             const [depositAmount, setDepositAmount] = useState("");
@@ -111,7 +140,64 @@
             const [profileLoading, setProfileLoading] = useState(false);
             const [profileMsg, setProfileMsg] = useState({ text: "", type: "" });
 
+            const [resellerBundles, setResellerBundles] = useState([]);
+            const [bundlePrices, setBundlePrices] = useState({});
+            const [editingBundleId, setEditingBundleId] = useState(null);
+            const [editingPrice, setEditingPrice] = useState("");
+
+            const [withdrawalMomoNumber, setWithdrawalMomoNumber] = useState("");
+            const [withdrawalName, setWithdrawalName] = useState("");
+            const [withdrawalLoading, setWithdrawalLoading] = useState(false);
+
+            const [customReferralLinks, setCustomReferralLinks] = useState([]);
+
             const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.price, 0), [cart]);
+
+            // Detect referral link on mount
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                const link = params.get('link');
+                const ref = params.get('ref');
+                
+                if (link && !ref) {
+                    setIsUsingReferralLink(true);
+                    // Will resolve below after FB loads
+                } else if (ref) {
+                    setResellerId(ref);
+                    setIsUsingReferralLink(true);
+                }
+            }, []);
+
+            // Resolve custom referral links
+            useEffect(() => {
+                if (!fb) return;
+                
+                const params = new URLSearchParams(window.location.search);
+                const linkParam = params.get('link');
+                
+                if (linkParam && !resellerId) {
+                    const db = fb.firestore();
+                    db.collection('artifacts').doc(appId).collection('public').doc('data')
+                        .collection('referralLinks').doc(linkParam)
+                        .get()
+                        .then(doc => {
+                            if (doc.exists) {
+                                const actualResellerId = doc.data().resellerId;
+                                setResellerId(actualResellerId);
+                                localStorage.setItem('referralId', actualResellerId);
+                                
+                                // Track the click (async, no need to wait)
+                                db.collection('artifacts').doc(appId).collection('public').doc('data')
+                                    .collection('referralLinks').doc(linkParam)
+                                    .update({ 
+                                        clicks: db.FieldValue.serverTimestamp ? 
+                                            firebase.firestore.FieldValue.increment(1) : 
+                                            db.FieldValue.increment(1)
+                                    }).catch(() => {});
+                            }
+                        });
+                }
+            }, [fb, resellerId]);
 
             useEffect(() => {
                 const handlePopState = (event) => {
@@ -143,6 +229,24 @@
             }, [fb]);
 
             useEffect(() => {
+                if (!fb) return;
+                const db = fb.firestore();
+                const unsubNetwork = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('settings').doc('network')
+                    .onSnapshot((doc) => {
+                        if (doc.exists) {
+                            setNetworkLocked(doc.data().locked || false);
+                        } else {
+                            setNetworkLocked(false);
+                        }
+                        setNetworkCheckLoading(false);
+                    }, (error) => {
+                        console.log("Network status check error:", error);
+                        setNetworkCheckLoading(false);
+                    });
+                return () => unsubNetwork();
+            }, [fb]);
+
+            useEffect(() => {
                 if (!user || !fb) return;
                 const db = fb.firestore();
                 
@@ -152,6 +256,7 @@
                             const data = docSnap.data();
                             setProfile(data);
                             setEditName(data.name || "");
+                            setIsReseller(data.isReseller || false);
                         } else { setProfile({ isProfileComplete: false }); }
                         setLoading(false);
                     }, () => setLoading(false));
@@ -176,6 +281,60 @@
 
                 return () => { unsubProfile(); unsubOrders(); unsubTx(); };
             }, [user, fb]);
+
+            // Load reseller bundles when viewing through referral link
+            useEffect(() => {
+                if (!fb || !resellerId) return;
+                const db = fb.firestore();
+                
+                const unsubReseller = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('resellers').doc(resellerId)
+                    .collection('customBundles')
+                    .onSnapshot((snapshot) => {
+                        const bundles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        setResellerBundles(bundles);
+                        
+                        const priceMap = {};
+                        bundles.forEach(b => {
+                            priceMap[b.bundleId] = b.price;
+                        });
+                        setBundlePrices(priceMap);
+
+                        const merged = DEFAULT_BUNDLES.map(b => {
+                            const reseller = bundles.find(rb => rb.bundleId === b.id);
+                            return {
+                                ...b,
+                                resellerPrice: reseller?.price || b.price,
+                                hasReseller: !!reseller
+                            };
+                        });
+                        setBundles(merged);
+                    }, (error) => {
+                        console.error("Error loading reseller bundles:", error);
+                    });
+                
+                return () => unsubReseller();
+            }, [fb, resellerId]);
+
+            // Load CURRENT user's own prices (for reseller viewing their earnings)
+            useEffect(() => {
+                if (!fb || !user || !isReseller) return;
+                
+                const db = fb.firestore();
+                
+                const unsubMyPrices = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('resellers').doc(user.uid)
+                    .collection('customBundles')
+                    .onSnapshot((snapshot) => {
+                        const myPrices = {};
+                        snapshot.docs.forEach(doc => {
+                            myPrices[doc.data().bundleId] = doc.data().price;
+                        });
+                        setBundlePrices(myPrices);
+                    }, (error) => {
+                        console.error("Error loading my prices:", error);
+                    });
+                
+                return () => unsubMyPrices();
+            }, [fb, user, isReseller]);
 
             useEffect(() => {
                 const script = document.createElement("script");
@@ -202,9 +361,11 @@
                             phone: fd.get('phone')?.trim(), 
                             email,
                             walletBalance: 0, 
+                            resellerEarnings: 0,
                             createdAt: Date.now(), 
                             uid: userCred.user.uid, 
-                            isProfileComplete: true
+                            isProfileComplete: true,
+                            isReseller: false
                         });
                     }
                 } catch (err) { setAuthError(err.message); } finally { setAuthLoading(false); }
@@ -226,19 +387,22 @@
 
             const addToCart = () => {
                 if (!inputPhone || inputPhone.length !== 10 || !selectedBundleId) return;
-                const bundle = DATA_BUNDLES.find(b => b.id === selectedBundleId);
+                const bundle = bundles.find(b => b.id === selectedBundleId);
+                const price = resellerId ? bundle.resellerPrice : bundle.price;
                 setCart([...cart, {
                     tempId: Date.now() + Math.random(),
                     phone: inputPhone,
                     bundleName: bundle.name,
-                    price: bundle.price
+                    price: price,
+                    bundleId: bundle.id,
+                    originalPrice: bundle.price
                 }]);
                 setInputPhone("");
                 setSelectedBundleId("");
             };
 
             const finalizeOrders = async (method) => {
-                if (cart.length === 0) return;
+                if (cart.length === 0 || networkLocked) return;
                 setProcessingOrder(true);
                 const db = fb.firestore();
                 try {
@@ -246,19 +410,24 @@
                         userId: user.uid,
                         recipientNumber: item.phone,
                         bundleName: item.bundleName,
-                        price: item.price,
+                        price: item.originalPrice,
+                        chargedPrice: item.price,
                         status: 'pending',
                         network: 'MTN',
                         service: 'Data Purchase',
                         paymentMethod: method,
-                        timestamp: Date.now()
+                        timestamp: Date.now(),
+                        resellerId: resellerId || null
                     }));
+                    
                     await Promise.all(orderPromises);
+                    
                     if (method === 'wallet') {
                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({ 
                             walletBalance: fb.firestore.FieldValue.increment(-cartTotal) 
                         });
                     }
+                    
                     setCart([]); 
                     setShowCheckoutModal(false); 
                     setOrderSuccess(true);
@@ -282,6 +451,200 @@
                     console.error("Delete error:", err);
                 }
             };
+
+            const becomeReseller = async () => {
+                const db = fb.firestore();
+                try {
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({
+                        isReseller: true
+                    });
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('resellers').doc(user.uid).set({
+                        userId: user.uid,
+                        name: profile.name,
+                        email: profile.email,
+                        phone: profile.phone,
+                        createdAt: Date.now(),
+                        totalEarnings: 0,
+                        totalSales: 0,
+                        status: 'active'
+                    });
+                    setShowBecomeReseller(false);
+                    setProfileMsg({ text: "You are now a reseller! 🎉", type: "success" });
+                } catch (err) {
+                    setProfileMsg({ text: err.message, type: "error" });
+                }
+            };
+
+            const generateCustomLink = async () => {
+                const db = fb.firestore();
+                try {
+                    // Generate random slug
+                    const randomSlug = Math.random().toString(36).substring(2, 10) + 
+                                      Math.random().toString(36).substring(2, 10);
+                    
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data')
+                        .collection('referralLinks').doc(randomSlug).set({
+                            userId: user.uid,
+                            resellerId: user.uid,
+                            createdAt: Date.now(),
+                            clicks: 0,
+                            status: 'active'
+                        });
+                    
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const customLink = `${baseUrl}?link=${randomSlug}`;
+                    
+                    setCustomReferralLinks([...customReferralLinks, {
+                        id: randomSlug,
+                        link: customLink,
+                        clicks: 0,
+                        createdAt: Date.now()
+                    }]);
+                    
+                    setProfileMsg({ text: "✓ New link generated!", type: "success" });
+                } catch (err) {
+                    setProfileMsg({ text: err.message, type: "error" });
+                }
+            };
+
+            const updateResellerPrice = async (bundleId, newPrice) => {
+                const db = fb.firestore();
+                try {
+                    const priceNum = parseFloat(newPrice);
+                    if (isNaN(priceNum) || priceNum <= 0) {
+                        alert("Price must be a valid number greater than 0");
+                        return;
+                    }
+                    
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('resellers').doc(user.uid).collection('customBundles').doc(bundleId).set({
+                        bundleId: bundleId,
+                        price: priceNum,
+                        updatedAt: Date.now()
+                    });
+                    
+                    setEditingBundleId(null);
+                    setEditingPrice("");
+                    setProfileMsg({ text: "✓ Price updated! Changes live now", type: "success" });
+                    
+                    setTimeout(() => {
+                        setProfileMsg({ text: "", type: "" });
+                    }, 3000);
+                    
+                } catch (err) {
+                    console.error("Error updating price:", err);
+                    setProfileMsg({ text: "Error: " + err.message, type: "error" });
+                }
+            };
+
+            const requestWithdrawal = async () => {
+                if (!withdrawalMomoNumber.trim() || !withdrawalName.trim()) {
+                    alert("Please fill in all fields");
+                    return;
+                }
+                
+                if (profile.resellerEarnings < 10) {
+                    alert("Minimum withdrawal is ₵10");
+                    return;
+                }
+
+                const db = fb.firestore();
+                setWithdrawalLoading(true);
+                try {
+                    await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('withdrawals').add({
+                        userId: user.uid,
+                        resellerName: profile.name,
+                        momoNumber: withdrawalMomoNumber,
+                        withdrawalName: withdrawalName,
+                        amount: profile.resellerEarnings,
+                        status: 'pending',
+                        requestedAt: Date.now(),
+                        completedAt: null
+                    });
+
+                    setShowWithdrawalModal(false);
+                    setWithdrawalMomoNumber("");
+                    setWithdrawalName("");
+                    setProfileMsg({ text: "✓ Withdrawal requested! Admin will process it soon.", type: "success" });
+                } catch (err) {
+                    setProfileMsg({ text: err.message, type: "error" });
+                } finally {
+                    setWithdrawalLoading(false);
+                }
+            };
+
+            const copyToClipboard = (text) => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                setProfileMsg({ text: "✓ Link copied!", type: "success" });
+            };
+
+            if (networkCheckLoading) return (
+                <div className="min-h-screen flex items-center justify-center bg-[#020617]">
+                    <Icon name="loader-2" className="text-indigo-500 w-12 h-12 animate-spin" />
+                </div>
+            );
+
+            if (networkLocked) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#020617] relative overflow-hidden">
+                        <div className="absolute inset-0 overflow-hidden">
+                            <div className="absolute -top-40 -right-40 w-80 h-80 bg-red-500/10 rounded-full blur-3xl"></div>
+                            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-red-500/5 rounded-full blur-3xl"></div>
+                        </div>
+
+                        <div className="relative z-10 w-full max-w-sm text-center space-y-8">
+                            <div className="flex justify-center">
+                                <div className="w-24 h-24 bg-red-500/20 rounded-full flex items-center justify-center animate-pulse-warning border-4 border-red-500/30">
+                                    <Icon name="wifi-off" size={48} className="text-red-500" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <h1 className="text-4xl font-black text-white uppercase tracking-tighter italic">Network Down</h1>
+                                <p className="text-lg text-slate-400 font-bold leading-relaxed">
+                                    We're currently experiencing network issues and cannot process orders at the moment.
+                                </p>
+                            </div>
+
+                            <div className="bg-red-500/10 border-l-4 border-red-500 p-6 rounded-2xl space-y-2">
+                                <p className="text-red-400 font-black uppercase text-sm tracking-widest flex items-center gap-2 justify-center">
+                                    <Icon name="alert-circle" size={18} />
+                                    Service Temporarily Unavailable
+                                </p>
+                                <p className="text-slate-400 text-[13px] font-bold">
+                                    Please check back shortly. Our team is working to restore service.
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                <a 
+                                    href="https://wa.me/233535905990" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="block w-full py-5 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-black text-white uppercase text-sm transition-all shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2"
+                                >
+                                    <Icon name="message-circle" size={20} />
+                                    Contact Support
+                                </a>
+                                <button 
+                                    onClick={() => window.location.reload()}
+                                    className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-bold text-slate-300 uppercase text-xs transition-all"
+                                >
+                                    Try Again
+                                </button>
+                            </div>
+
+                            <p className="text-[11px] text-slate-600 font-bold uppercase tracking-widest pt-4">
+                                We apologize for the inconvenience
+                            </p>
+                        </div>
+                    </div>
+                );
+            }
 
             if (loading || !fb) return (
                 <div className="min-h-screen flex items-center justify-center bg-[#020617]">
@@ -328,17 +691,42 @@
                     <header className="px-6 pt-10 pb-6 flex justify-between items-end sticky top-0 bg-[#020617]/90 backdrop-blur-xl z-[60]">
                         <div className="space-y-1">
                             <h1 className="text-xl font-black gradient-text uppercase italic tracking-tighter">Cheap Data Center</h1>
-                            <p className="text-[10px] font-extrabold text-slate-500 uppercase flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online</p>
+                            {isReseller && <span className="badge badge-warning">💰 RESELLER</span>}
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Balance</p>
                             <p className="text-xl font-black text-emerald-400 leading-none">₵{profile.walletBalance?.toFixed(2)}</p>
+                            {isReseller && (
+                                <div className="mt-2">
+                                    <p className="text-[8px] font-black text-amber-400 uppercase">Earnings</p>
+                                    <p className="text-sm font-black text-amber-400">₵{profile.resellerEarnings?.toFixed(2)}</p>
+                                </div>
+                            )}
                         </div>
                     </header>
 
                     <main className="px-6 space-y-8 mt-4">
                         {activeTab === 'home' && (
                             <div className="space-y-8 animate-pop-in">
+                                {!isReseller && (
+                                    <div className="relative bg-gradient-to-br from-orange-500/20 to-pink-500/10 border-2 border-orange-500/30 p-6 rounded-[2.5rem] space-y-3 overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mt-10"></div>
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Icon name="rocket" size={24} className="text-orange-400" />
+                                                <h3 className="font-black text-white uppercase text-sm">Become a Reseller 🚀</h3>
+                                            </div>
+                                            <p className="text-[10px] text-slate-300 font-bold mb-4">Set your own prices and earn BIG commissions on every sale through your unique link!</p>
+                                            <button 
+                                                onClick={() => setShowBecomeReseller(true)}
+                                                className="w-full py-3 bg-orange-600 text-white rounded-xl font-black uppercase text-xs hover:bg-orange-700 transition-all active:scale-95"
+                                            >
+                                                Start Now & Earn
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="relative glass rounded-[2.5rem] p-8 flex justify-between items-center overflow-hidden">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                                     <div className="relative">
@@ -373,14 +761,17 @@
                                         </div>
                                         
                                         <div className="grid grid-cols-3 gap-3">
-                                            {DATA_BUNDLES.map(b => (
+                                            {bundles.map(b => (
                                                 <button 
                                                     key={b.id}
                                                     onClick={() => setSelectedBundleId(b.id)}
                                                     className={`bundle-item glass p-4 rounded-3xl flex flex-col items-center justify-center gap-1 border border-white/5 ${selectedBundleId === b.id ? 'active' : ''}`}
                                                 >
                                                     <span className={`text-sm font-black ${selectedBundleId === b.id ? 'text-indigo-400' : 'text-slate-200'}`}>{b.name}</span>
-                                                    <span className="text-[10px] font-bold text-slate-500 tracking-tighter">₵{b.price.toFixed(1)}</span>
+                                                    <span className="text-[10px] font-bold text-slate-500 tracking-tighter">₵{(resellerId ? b.resellerPrice : b.price).toFixed(1)}</span>
+                                                    {resellerId && b.hasReseller && b.resellerPrice !== b.price && (
+                                                        <span className="text-[8px] text-emerald-400 font-black">Save ₵{(b.price - b.resellerPrice).toFixed(2)}</span>
+                                                    )}
                                                 </button>
                                             ))}
                                         </div>
@@ -450,7 +841,7 @@
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-black text-sm text-emerald-400">₵{o.price?.toFixed(2)}</p>
+                                                    <p className="font-black text-sm text-emerald-400">₵{o.chargedPrice?.toFixed(2) || o.price?.toFixed(2)}</p>
                                                     <p className={`text-[8px] font-black uppercase ${o.status === 'delivered' ? 'text-emerald-500' : 'text-orange-500'}`}>{o.status}</p>
                                                 </div>
                                             </div>
@@ -460,12 +851,132 @@
                             </div>
                         )}
 
-                        {activeTab === 'transactions' && (
+                        {activeTab === 'earnings' && isReseller && (
+                            <div className="space-y-6 animate-pop-in pb-10">
+                                <div className="text-center mb-6">
+                                    <Icon name="trending-up" size={40} className="mx-auto text-amber-400 mb-3" />
+                                    <h2 className="text-2xl font-black text-white">Reseller Earnings</h2>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Grow your income</p>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-amber-500/30 to-orange-500/20 border-2 border-amber-500/40 p-8 rounded-[3rem] space-y-4 text-center">
+                                    <p className="text-amber-200 text-[11px] font-black uppercase">Total Earnings</p>
+                                    <h1 className="text-6xl font-black text-amber-400 tracking-tighter">₵{profile.resellerEarnings?.toFixed(2)}</h1>
+                                    <p className="text-amber-200/60 text-[10px] font-bold">Ready to withdraw</p>
+                                </div>
+
+                                {/* CUSTOM REFERRAL LINKS SECTION */}
+                                <div className="bg-white p-6 rounded-[2.5rem] space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Icon name="link" size={20} className="text-indigo-600" />
+                                            <h3 className="font-black text-slate-900">Your Referral Links</h3>
+                                        </div>
+                                        <button 
+                                            onClick={generateCustomLink}
+                                            className="text-[10px] font-black bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 active:scale-95"
+                                        >
+                                            + Generate New
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {customReferralLinks.length === 0 ? (
+                                            <p className="text-[10px] text-slate-500 font-bold text-center py-4">No links yet. Generate one to start!</p>
+                                        ) : (
+                                            customReferralLinks.map(link => (
+                                                <div key={link.id} className="bg-slate-50 p-3 rounded-xl flex items-center justify-between gap-2">
+                                                    <div className="flex-1">
+                                                        <p className="text-[9px] font-bold text-slate-600 break-all">{link.link}</p>
+                                                        <p className="text-[8px] text-slate-400 font-bold mt-1">👁️ {link.clicks} clicks</p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => copyToClipboard(link.link)}
+                                                        className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-90 flex-shrink-0"
+                                                    >
+                                                        <Icon name="copy" size={14} />
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    <p className="text-[9px] text-slate-600 font-bold text-center">📱 These links look normal - nobody knows you're earning! Share with anyone.</p>
+                                </div>
+
+                                {/* Custom Pricing */}
+                                <div className="bg-white p-6 rounded-[2.5rem] space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-black text-slate-900 flex items-center gap-2">
+                                            <Icon name="star" size={18} className="text-amber-500" />
+                                            Set Your Prices
+                                        </h3>
+                                        <button onClick={() => setShowPriceEditor(true)} className="text-[10px] font-black bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 active:scale-95">
+                                            ✏️ Edit
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                                        {DEFAULT_BUNDLES.map(bundle => {
+                                            const customPrice = bundlePrices[bundle.id];
+                                            const profitPerSale = customPrice ? (customPrice - bundle.price) : 0;
+                                            
+                                            return (
+                                                <div key={bundle.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                                                    <div>
+                                                        <p className="font-bold text-slate-900">{bundle.name}</p>
+                                                        <p className="text-[9px] text-slate-500 font-bold">Default: ₵{bundle.price.toFixed(2)}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        {customPrice ? (
+                                                            <div>
+                                                                <p className="text-[10px] text-emerald-600 font-black">Your: ₵{customPrice.toFixed(2)}</p>
+                                                                <p className="text-[9px] text-emerald-500 font-bold">+₵{profitPerSale.toFixed(2)} profit</p>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-[10px] text-slate-400 font-bold">Not set</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* WITHDRAWAL */}
+                                <div className="bg-white p-6 rounded-[2.5rem] space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <Icon name="send" size={20} className="text-emerald-600" />
+                                        <h3 className="font-black text-slate-900">Withdraw Earnings</h3>
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={() => setShowWithdrawalModal(true)}
+                                        disabled={profile.resellerEarnings < 10}
+                                        className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase text-sm disabled:opacity-30 hover:bg-emerald-700 transition-all active:scale-95"
+                                    >
+                                        Request Withdrawal
+                                    </button>
+                                    
+                                    <p className="text-[9px] text-slate-600 font-bold">
+                                        💡 Minimum: <span className="font-black">₵10</span> | Paid via MoMo
+                                    </p>
+                                </div>
+
+                                {profileMsg.text && (
+                                    <div className={`p-4 rounded-2xl text-[10px] font-black uppercase text-center ${profileMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                                        {profileMsg.text}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'wallet' && (
                             <div className="space-y-6 animate-pop-in">
-                                <h3 className="text-2xl font-black tracking-tight text-white">Transfers</h3>
+                                <h3 className="text-2xl font-black tracking-tight text-white">Wallet</h3>
                                 <div className="space-y-3">
                                     {transactions.length === 0 ? (
-                                        <p className="text-center text-slate-500 py-10 font-bold">No transfers found.</p>
+                                        <p className="text-center text-slate-500 py-10 font-bold">No transactions found.</p>
                                     ) : transactions.map(tx => (
                                         <div key={tx.id} className="glass p-5 rounded-[2rem] flex justify-between items-center border border-white/5">
                                             <div className="flex gap-4 items-center">
@@ -539,16 +1050,179 @@
                         )}
                     </main>
 
-                    <a 
-                        href="https://wa.me/233535905990" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="fixed bottom-32 right-6 pl-5 pr-6 h-14 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl shadow-emerald-500/40 z-[90] active:scale-90 transition-transform gap-2"
-                    >
-                        <Icon name="message-circle" size={24} />
-                        <span className="font-black uppercase text-[10px] tracking-widest pt-0.5">Help</span>
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-[#020617] animate-pulse"></span>
-                    </a>
+                    {/* MODALS - Same as before ... (keeping price editor and withdrawal modals from previous version) */}
+                    {showBecomeReseller && (
+                        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                            <div className="glass w-full max-w-sm rounded-[3rem] p-8 space-y-6 animate-pop-in border border-white/10">
+                                <div className="text-center">
+                                    <Icon name="rocket" size={48} className="mx-auto text-orange-400 mb-3" />
+                                    <h2 className="text-2xl font-black text-white uppercase">Start Reselling</h2>
+                                </div>
+
+                                <div className="space-y-3 bg-white/5 p-4 rounded-2xl">
+                                    <div className="flex gap-3">
+                                        <Icon name="check-circle" size={20} className="text-emerald-400 flex-shrink-0" />
+                                        <div>
+                                            <p className="font-black text-white text-sm">Set Your Prices</p>
+                                            <p className="text-[10px] text-slate-400">Sell any bundle at any price you want</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Icon name="check-circle" size={20} className="text-emerald-400 flex-shrink-0" />
+                                        <div>
+                                            <p className="font-black text-white text-sm">Get Unique Links</p>
+                                            <p className="text-[10px] text-slate-400">Nobody knows you're earning!</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Icon name="check-circle" size={20} className="text-emerald-400 flex-shrink-0" />
+                                        <div>
+                                            <p className="font-black text-white text-sm">Track Earnings</p>
+                                            <p className="text-[10px] text-slate-400">See profits in real-time</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Icon name="check-circle" size={20} className="text-emerald-400 flex-shrink-0" />
+                                        <div>
+                                            <p className="font-black text-white text-sm">Easy Withdrawal</p>
+                                            <p className="text-[10px] text-slate-400">Withdraw to MoMo anytime</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <button 
+                                        onClick={becomeReseller}
+                                        className="w-full py-4 bg-gradient-to-r from-orange-600 to-pink-600 text-white rounded-2xl font-black uppercase text-sm hover:shadow-lg hover:shadow-orange-600/50 transition-all active:scale-95"
+                                    >
+                                        Yes, Make Me a Reseller!
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowBecomeReseller(false)}
+                                        className="w-full py-4 bg-white/5 text-slate-300 rounded-2xl font-black uppercase text-sm border border-white/10 hover:bg-white/10 transition-all"
+                                    >
+                                        Maybe Later
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showPriceEditor && isReseller && (
+                        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                            <div className="glass w-full max-w-sm rounded-[3rem] p-8 space-y-6 animate-pop-in border border-white/10 max-h-[90vh] overflow-y-auto">
+                                <div className="sticky top-0 flex items-center justify-between bg-[#020617] py-2">
+                                    <h3 className="font-black text-2xl text-white uppercase">Set Your Prices</h3>
+                                    <button onClick={() => setShowPriceEditor(false)} className="p-2 hover:bg-white/10 rounded-lg">
+                                        <Icon name="x" size={20} className="text-slate-400" />
+                                    </button>
+                                </div>
+
+                                <p className="text-[10px] text-slate-400 font-bold text-center">Sell at higher prices than default to earn profit on each sale!</p>
+
+                                <div className="space-y-3">
+                                    {DEFAULT_BUNDLES.map(bundle => (
+                                        <div key={bundle.id} className="bg-white/5 p-4 rounded-2xl space-y-2 border border-white/10">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-black text-white">{bundle.name}</span>
+                                                <span className="text-[9px] text-slate-500 font-bold">Default: ₵{bundle.price.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    type="number" 
+                                                    step="0.01"
+                                                    min="0"
+                                                    placeholder={bundle.price.toFixed(2)}
+                                                    value={editingBundleId === bundle.id ? editingPrice : bundlePrices[bundle.id] ? bundlePrices[bundle.id].toString() : ''}
+                                                    onChange={(e) => {
+                                                        setEditingBundleId(bundle.id);
+                                                        setEditingPrice(e.target.value);
+                                                    }}
+                                                    className="flex-1 bg-slate-900/50 border border-white/5 p-3 rounded-xl outline-none text-sm font-bold text-white"
+                                                />
+                                                <button 
+                                                    onClick={() => updateResellerPrice(bundle.id, editingPrice || bundle.price)}
+                                                    disabled={!editingPrice || editingBundleId !== bundle.id}
+                                                    className="px-4 bg-indigo-600 text-white rounded-xl font-black text-[10px] hover:bg-indigo-700 disabled:opacity-50 active:scale-95"
+                                                >
+                                                    Save
+                                                </button>
+                                            </div>
+                                            {editingBundleId === bundle.id && editingPrice && (
+                                                <p className="text-[9px] text-emerald-400 font-bold">
+                                                    💰 You earn: ₵{(parseFloat(editingPrice) - bundle.price).toFixed(2)} per sale
+                                                </p>
+                                            )}
+                                            {bundlePrices[bundle.id] && (
+                                                <p className="text-[9px] text-amber-300 font-bold">
+                                                    ✓ Your price: ₵{bundlePrices[bundle.id].toFixed(2)} (+₵{(bundlePrices[bundle.id] - bundle.price).toFixed(2)} profit)
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <button onClick={() => setShowPriceEditor(false)} className="w-full text-slate-400 font-black uppercase text-[10px] text-center py-3 hover:text-white transition-all">Close</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {showWithdrawalModal && (
+                        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+                            <div className="glass w-full max-w-sm rounded-[3rem] p-8 space-y-6 animate-pop-in border border-white/10">
+                                <h3 className="font-black text-2xl text-white uppercase text-center">Request Withdrawal</h3>
+
+                                <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl">
+                                    <p className="text-emerald-400 font-black text-lg text-center">₵{profile.resellerEarnings?.toFixed(2)}</p>
+                                    <p className="text-[10px] text-emerald-300 font-bold text-center mt-1">Available to withdraw</p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-2 block">Your Name (as it appears on MoMo)</label>
+                                        <input 
+                                            type="text"
+                                            value={withdrawalName}
+                                            onChange={(e) => setWithdrawalName(e.target.value)}
+                                            placeholder="John Doe"
+                                            className="w-full bg-slate-900/50 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-white"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-2 block">MoMo Number</label>
+                                        <input 
+                                            type="tel"
+                                            value={withdrawalMomoNumber}
+                                            onChange={(e) => setWithdrawalMomoNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                            maxLength="10"
+                                            placeholder="0501234567"
+                                            className="w-full bg-slate-900/50 border border-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-white"
+                                        />
+                                        <p className="text-[9px] text-slate-500 font-bold mt-1">Format: 10 digits (e.g., 0501234567)</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <button 
+                                        onClick={requestWithdrawal}
+                                        disabled={withdrawalLoading || !withdrawalName.trim() || !withdrawalMomoNumber.trim() || withdrawalMomoNumber.length !== 10}
+                                        className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase text-sm disabled:opacity-30 hover:bg-emerald-700 transition-all active:scale-95"
+                                    >
+                                        {withdrawalLoading ? <Icon name="loader-2" size={16} className="mx-auto animate-spin" /> : 'Confirm Withdrawal'}
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowWithdrawalModal(false)}
+                                        className="w-full py-4 bg-white/5 text-slate-300 rounded-2xl font-black uppercase text-sm border border-white/10 hover:bg-white/10 transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+
+                                <p className="text-[9px] text-slate-500 font-bold text-center">✓ We'll process your request within 24 hours and send it to your MoMo number</p>
+                            </div>
+                        </div>
+                    )}
 
                     {showCheckoutModal && (
                         <div className="fixed inset-0 bg-[#020617]/95 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
@@ -676,9 +1350,10 @@
                     )}
 
                     <nav className="fixed bottom-8 left-4 right-4 h-24 glass rounded-[3rem] flex justify-around items-center z-[80] shadow-2xl border border-white/10 px-2">
-                        <NavBtn active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon="smartphone" label="Shop" count={cart.length} />
-                        <NavBtn active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon="history" label="Activity" />
-                        <NavBtn active={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} icon="credit-card" label="Wallet" />
+                        <NavBtn active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon="shopping-cart" label="Shop" count={cart.length} />
+                        <NavBtn active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon="history" label="Orders" />
+                        {isReseller && <NavBtn active={activeTab === 'earnings'} onClick={() => setActiveTab('earnings')} icon="trending-up" label="Earnings" />}
+                        <NavBtn active={activeTab === 'wallet'} onClick={() => setActiveTab('wallet')} icon="credit-card" label="Wallet" />
                         <NavBtn active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon="user" label="Me" />
                     </nav>
 
