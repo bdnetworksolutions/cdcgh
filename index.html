@@ -117,6 +117,7 @@
             const [authError, setAuthError] = useState("");
             const [networkLocked, setNetworkLocked] = useState(false);
             const [networkCheckLoading, setNetworkCheckLoading] = useState(true);
+            const [referralResolving, setReferralResolving] = useState(false);
             
             const [cart, setCart] = useState([]); 
             const [inputPhone, setInputPhone] = useState("");
@@ -161,7 +162,7 @@
                 
                 if (link && !ref) {
                     setIsUsingReferralLink(true);
-                    // Will resolve below after FB loads
+                    setReferralResolving(true);
                 } else if (ref) {
                     setResellerId(ref);
                     setIsUsingReferralLink(true);
@@ -186,16 +187,18 @@
                                 setResellerId(actualResellerId);
                                 localStorage.setItem('referralId', actualResellerId);
                                 
-                                // Track the click (async, no need to wait)
+                                const newParams = new URLSearchParams(window.location.search);
+                                newParams.set('ref', actualResellerId);
+                                window.history.replaceState({}, '', `${window.location.pathname}?${newParams}`);
+                                
                                 db.collection('artifacts').doc(appId).collection('public').doc('data')
                                     .collection('referralLinks').doc(linkParam)
                                     .update({ 
-                                        clicks: db.FieldValue.serverTimestamp ? 
-                                            firebase.firestore.FieldValue.increment(1) : 
-                                            db.FieldValue.increment(1)
+                                        clicks: window.firebase.firestore.FieldValue.increment(1)
                                     }).catch(() => {});
                             }
-                        });
+                        })
+                        .finally(() => setReferralResolving(false));
                 }
             }, [fb, resellerId]);
 
@@ -585,6 +588,13 @@
             if (networkCheckLoading) return (
                 <div className="min-h-screen flex items-center justify-center bg-[#020617]">
                     <Icon name="loader-2" className="text-indigo-500 w-12 h-12 animate-spin" />
+                </div>
+            );
+
+            if (referralResolving) return (
+                <div className="min-h-screen flex flex-col items-center justify-center bg-[#020617]">
+                    <Icon name="loader-2" className="text-indigo-500 w-12 h-12 animate-spin" />
+                    <p className="mt-4 text-indigo-400 font-bold text-sm">Resolving your referral link...</p>
                 </div>
             );
 
@@ -1050,7 +1060,6 @@
                         )}
                     </main>
 
-                    {/* MODALS - Same as before ... (keeping price editor and withdrawal modals from previous version) */}
                     {showBecomeReseller && (
                         <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
                             <div className="glass w-full max-w-sm rounded-[3rem] p-8 space-y-6 animate-pop-in border border-white/10">
