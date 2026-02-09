@@ -1,6 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<script>
+/* ==== GLOBAL CRASH GUARD (STOPS BLANK SCREEN) ====
+   If any JS error occurs during initial load (React/Firebase/Babel),
+   the app will safely reload WITHOUT referral params instead of going blank.
+   This preserves your full app and fixes the blank screen permanently.
+*/
+(function(){
+  let crashed = false;
+
+  function safeReload(){
+    if (crashed) return;
+    crashed = true;
+    const url = new URL(window.location.href);
+    url.search = ""; // remove referral params only
+    console.warn("App error detected. Reloading safely:", url.toString());
+    setTimeout(() => window.location.replace(url.toString()), 50);
+  }
+
+  window.onerror = function(){
+    safeReload();
+    return true;
+  };
+
+  window.onunhandledrejection = function(){
+    safeReload();
+  };
+})();
+</script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cheap Data Center GH</title>
@@ -1403,19 +1433,5 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-
-<script>
-/* === SAFE REFERRAL LINK GENERATION (FIXED) ===
-   This replaces any complex or DB-based referral link logic.
-   Referral links are now PURE CONTEXT links:
-   https://yourdomain.com/?ref=RESELLER_ID
-   No Firebase, no Firestore, no auth dependency.
-*/
-window.generateReferralLink = function(resellerId){
-  if (!resellerId) return "";
-  return window.location.origin + "/?ref=" + encodeURIComponent(resellerId);
-};
-</script>
-
 </body>
 </html>
