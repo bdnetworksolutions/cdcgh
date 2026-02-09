@@ -1,36 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<script>
-/* ==== GLOBAL CRASH GUARD (STOPS BLANK SCREEN) ====
-   If any JS error occurs during initial load (React/Firebase/Babel),
-   the app will safely reload WITHOUT referral params instead of going blank.
-   This preserves your full app and fixes the blank screen permanently.
-*/
-(function(){
-  let crashed = false;
-
-  function safeReload(){
-    if (crashed) return;
-    crashed = true;
-    const url = new URL(window.location.href);
-    url.search = ""; // remove referral params only
-    console.warn("App error detected. Reloading safely:", url.toString());
-    setTimeout(() => window.location.replace(url.toString()), 50);
-  }
-
-  window.onerror = function(){
-    safeReload();
-    return true;
-  };
-
-  window.onunhandledrejection = function(){
-    safeReload();
-  };
-})();
-</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cheap Data Center GH</title>
@@ -151,8 +121,8 @@
             const [cart, setCart] = useState([]); 
             const [inputPhone, setInputPhone] = useState("");
             const [selectedBundleId, setSelectedBundleId] = useState("");
-            const [bundles, setBundles] = useState([...DEFAULT_BUNDLES]);
-            const [isReseller, setIsReseller] = useState(false);
+            const [bundles, setBundles] = useState(DEFAULT_BUNDLES);
+            const [isReseller, setIsReseller] = useState(false); // reseller permanently disabled
             const [resellerId, setResellerId] = useState(null);
             const [isUsingReferralLink, setIsUsingReferralLink] = useState(false);
             
@@ -182,17 +152,6 @@
             const [customReferralLinks, setCustomReferralLinks] = useState([]);
 
             const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.price, 0), [cart]);
-
-            // Persist referral until login (safe)
-            useEffect(() => {
-                if (resellerId) {
-                    localStorage.setItem('referralId', resellerId);
-                } else {
-                    const stored = localStorage.getItem('referralId');
-                    if (stored) setResellerId(stored);
-                }
-            }, [resellerId]);
-
 
             // Detect referral link on mount
             useEffect(() => {
@@ -264,13 +223,7 @@
                 fb.initializeApp(firebaseConfig);
                 const unsubscribe = fb.auth().onAuthStateChanged((u) => {
                     setUser(u);
-                    if (!u) {
-        setLoading(false);
-        setProfile(null);
-        if (resellerId) {
-            setActiveTab('auth');
-        }
-    }
+                    if (!u) { setLoading(false); setProfile(null); }
                 });
                 return () => unsubscribe();
             }, [fb]);
@@ -303,7 +256,7 @@
                             const data = docSnap.data();
                             setProfile(data);
                             setEditName(data.name || "");
-                            setIsReseller(data.isReseller || false);
+                            setIsReseller(false); // reseller permanently disabled
                         } else { setProfile({ isProfileComplete: false }); }
                         setLoading(false);
                     }, () => setLoading(false));
@@ -331,7 +284,7 @@
 
             // Load reseller bundles when viewing through referral link
             useEffect(() => {
-                if (!fb || !resellerId || !user) return;
+                if (!fb || !resellerId) return;
                 const db = fb.firestore();
                 
                 const unsubReseller = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('resellers').doc(resellerId)
@@ -738,12 +691,12 @@
                     <header className="px-6 pt-10 pb-6 flex justify-between items-end sticky top-0 bg-[#020617]/90 backdrop-blur-xl z-[60]">
                         <div className="space-y-1">
                             <h1 className="text-xl font-black gradient-text uppercase italic tracking-tighter">Cheap Data Center</h1>
-                            {isReseller && <span className="badge badge-warning">💰 RESELLER</span>}
+                            {false && <span className="badge badge-warning">💰 RESELLER</span>}
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Balance</p>
                             <p className="text-xl font-black text-emerald-400 leading-none">₵{profile.walletBalance?.toFixed(2)}</p>
-                            {isReseller && (
+                            {false && (
                                 <div className="mt-2">
                                     <p className="text-[8px] font-black text-amber-400 uppercase">Earnings</p>
                                     <p className="text-sm font-black text-amber-400">₵{profile.resellerEarnings?.toFixed(2)}</p>
@@ -755,7 +708,7 @@
                     <main className="px-6 space-y-8 mt-4">
                         {activeTab === 'home' && (
                             <div className="space-y-8 animate-pop-in">
-                                {(!isReseller && !resellerId) && (
+                                {false && (
                                     <div className="relative bg-gradient-to-br from-orange-500/20 to-pink-500/10 border-2 border-orange-500/30 p-6 rounded-[2.5rem] space-y-3 overflow-hidden">
                                         <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mt-10"></div>
                                         <div className="relative z-10">
@@ -1399,7 +1352,7 @@
                     <nav className="fixed bottom-8 left-4 right-4 h-24 glass rounded-[3rem] flex justify-around items-center z-[80] shadow-2xl border border-white/10 px-2">
                         <NavBtn active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon="shopping-cart" label="Shop" count={cart.length} />
                         <NavBtn active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} icon="history" label="Orders" />
-                        {isReseller && <NavBtn active={activeTab === 'earnings'} onClick={() => setActiveTab('earnings')} icon="trending-up" label="Earnings" />}
+                        {false && <NavBtn active={activeTab === 'earnings'} onClick={() => setActiveTab('earnings')} icon="trending-up" label="Earnings" />}
                         <NavBtn active={activeTab === 'wallet'} onClick={() => setActiveTab('wallet')} icon="credit-card" label="Wallet" />
                         <NavBtn active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon="user" label="Me" />
                     </nav>
