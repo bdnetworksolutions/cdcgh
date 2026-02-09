@@ -201,9 +201,7 @@
                                 db.collection('artifacts').doc(appId).collection('public').doc('data')
                                     .collection('referralLinks').doc(linkParam)
                                     .update({ 
-                                        clicks: db.FieldValue.serverTimestamp ? 
-                                            firebase.firestore.FieldValue.increment(1) : 
-                                            db.FieldValue.increment(1)
+                                        clicks: fb.firestore.FieldValue.increment(1)
                                     }).catch(() => {});
                             }
                         });
@@ -231,7 +229,7 @@
 
             useEffect(() => {
                 if (!fb) return;
-                fb.initializeApp(firebaseConfig);
+                if (!fb.apps || !fb.apps.length) { fb.initializeApp(firebaseConfig); }
                 const unsubscribe = fb.auth().onAuthStateChanged((u) => {
                     setUser(u);
                     if (!u) {
@@ -301,7 +299,7 @@
 
             // Load reseller bundles when viewing through referral link
             useEffect(() => {
-                if (!fb || !resellerId || !user) return;
+                if (!fb || !resellerId) return;
                 const db = fb.firestore();
                 
                 const unsubReseller = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('resellers').doc(resellerId)
