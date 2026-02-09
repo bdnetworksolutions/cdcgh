@@ -33,17 +33,6 @@
         .badge-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
         .badge-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
     </style>
-
-<script>
-(function(){
-  const params = new URLSearchParams(window.location.search);
-  const ref = params.get("ref") || params.get("link");
-  if (ref) {
-    localStorage.setItem("ACTIVE_RESELLER_CONTEXT", ref);
-  }
-})();
-</script>
-
 </head>
 <body>
     <div id="root"></div>
@@ -134,7 +123,7 @@
             const [selectedBundleId, setSelectedBundleId] = useState("");
             const [bundles, setBundles] = useState([...DEFAULT_BUNDLES]);
             const [isReseller, setIsReseller] = useState(false);
-            const [resellerId, setResellerId] = useState(localStorage.getItem('ACTIVE_RESELLER_CONTEXT'));
+            const [resellerId, setResellerId] = useState(null);
             const [isUsingReferralLink, setIsUsingReferralLink] = useState(false);
             
             const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -1414,5 +1403,19 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+
+<script>
+/* === SAFE REFERRAL LINK GENERATION (FIXED) ===
+   This replaces any complex or DB-based referral link logic.
+   Referral links are now PURE CONTEXT links:
+   https://yourdomain.com/?ref=RESELLER_ID
+   No Firebase, no Firestore, no auth dependency.
+*/
+window.generateReferralLink = function(resellerId){
+  if (!resellerId) return "";
+  return window.location.origin + "/?ref=" + encodeURIComponent(resellerId);
+};
+</script>
+
 </body>
 </html>
