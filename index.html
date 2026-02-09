@@ -153,7 +153,7 @@
 
             const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.price, 0), [cart]);
 
-            // SAFELY persist referral (prevents blank screen on shared links)
+            // Persist referral until login (safe)
             useEffect(() => {
                 if (resellerId) {
                     localStorage.setItem('referralId', resellerId);
@@ -234,7 +234,13 @@
                 fb.initializeApp(firebaseConfig);
                 const unsubscribe = fb.auth().onAuthStateChanged((u) => {
                     setUser(u);
-                    if (!u) { setLoading(false); setProfile(null); }
+                    if (!u) {
+        setLoading(false);
+        setProfile(null);
+        if (resellerId) {
+            setActiveTab('auth');
+        }
+    }
                 });
                 return () => unsubscribe();
             }, [fb]);
@@ -295,7 +301,7 @@
 
             // Load reseller bundles when viewing through referral link
             useEffect(() => {
-                if (!fb || !resellerId) { setBundles([...DEFAULT_BUNDLES]); return; }
+                if (!fb || !resellerId || !user) return;
                 const db = fb.firestore();
                 
                 const unsubReseller = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('resellers').doc(resellerId)
@@ -719,7 +725,7 @@
                     <main className="px-6 space-y-8 mt-4">
                         {activeTab === 'home' && (
                             <div className="space-y-8 animate-pop-in">
-                                {!isReseller && (
+                                {(!isReseller && !resellerId) && (
                                     <div className="relative bg-gradient-to-br from-orange-500/20 to-pink-500/10 border-2 border-orange-500/30 p-6 rounded-[2.5rem] space-y-3 overflow-hidden">
                                         <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mt-10"></div>
                                         <div className="relative z-10">
