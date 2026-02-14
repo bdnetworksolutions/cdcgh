@@ -94,7 +94,7 @@
         const TRANSACTION_FEE_PERCENT = 0.02;
 
         const DEFAULT_BUNDLES = [
-            { id: '1gb', name: '1GB', price: 4.60 }, { id: '2gb', name: '2GB', price: 9.20 },
+            { id: '1gb', name: '1GB', price: 1.00 }, { id: '2gb', name: '2GB', price: 9.20 },
             { id: '3gb', name: '3GB', price: 13.50 }, { id: '4gb', name: '4GB', price: 18.00 },
             { id: '5gb', name: '5GB', price: 22.00 }, { id: '6gb', name: '6GB', price: 27.00 },
             { id: '8gb', name: '8GB', price: 36.00 }, { id: '10gb', name: '10GB', price: 43.00 },
@@ -120,6 +120,21 @@
             
             const [cart, setCart] = useState([]); 
             const [inputPhone, setInputPhone] = useState("");
+
+// AUTO-FILL + SUGGEST PREVIOUS PHONE NUMBERS
+useEffect(() => {
+    const history = JSON.parse(localStorage.getItem("phoneHistory") || "[]");
+    if (history.length) setInputPhone(history[history.length - 1]);
+}, []);
+
+useEffect(() => {
+    if (!inputPhone) return;
+    let history = JSON.parse(localStorage.getItem("phoneHistory") || "[]");
+    history = history.filter(n => n !== inputPhone);
+    history.push(inputPhone);
+    localStorage.setItem("phoneHistory", JSON.stringify(history));
+}, [inputPhone]);
+
             const [selectedBundleId, setSelectedBundleId] = useState("");
             const [bundles, setBundles] = useState(DEFAULT_BUNDLES);
             const [isReseller, setIsReseller] = useState(false); // reseller permanently disabled
@@ -133,7 +148,25 @@
             const [showBecomeReseller, setShowBecomeReseller] = useState(false);
             const [depositSuccess, setDepositSuccess] = useState(false);
             const [orderSuccess, setOrderSuccess] = useState(false);
+
+// AUTO HIDE ORDER TOAST
+useEffect(() => {
+    if (orderSuccess) {
+        const t = setTimeout(() => setOrderSuccess(false), 3000);
+        return () => clearTimeout(t);
+    }
+}, [orderSuccess]);
+
             const [depositAmount, setDepositAmount] = useState("");
+
+const [showScrollTop, setShowScrollTop] = useState(false);
+
+useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
 
             const [editName, setEditName] = useState("");
             const [editPass, setEditPass] = useState("");
@@ -688,6 +721,15 @@
 
             return (
                 <div className="max-w-md mx-auto min-h-screen pb-40 relative">
+
+{orderSuccess && (
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] animate-pop-in">
+        <div className="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black text-xs shadow-xl">
+            ✅ Order Received. Processing Shortly.
+        </div>
+    </div>
+)}
+
                     <header className="px-6 pt-10 pb-6 flex justify-between items-end sticky top-0 bg-[#020617]/90 backdrop-blur-xl z-[60]">
                         <div className="space-y-1">
                             <h1 className="text-xl font-black gradient-text uppercase italic tracking-tighter">Cheap Data Center</h1>
@@ -745,13 +787,14 @@
                                 </div>
 
                                 <div className="space-y-6">
+<h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Enter Number</h4>
                                     <div className="glass p-2 rounded-3xl flex items-center border border-white/5 focus-within:border-indigo-500/30 transition-all">
                                         <div className="w-12 h-12 flex items-center justify-center text-indigo-500">
                                             <Icon name="smartphone" size={18} />
                                         </div>
                                         <input 
                                             type="tel" 
-                                            value={inputPhone} 
+                                            value={inputPhone} list="phoneHistoryList" 
                                             maxLength={10}
                                             onChange={(e) => setInputPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} 
                                             placeholder="Recipient Phone Number" 
@@ -760,6 +803,7 @@
                                     </div>
 
                                     <div className="space-y-4">
+<h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest text-center">Select Bundle</h4>
                                         <div className="flex items-center gap-3 px-2">
                                             <div className="h-0.5 bg-indigo-500 flex-grow rounded-full opacity-20"></div>
                                             <span className="text-[10px] font-black bg-indigo-600 text-white px-4 py-1.5 rounded-full uppercase tracking-widest">MTN UP2U OFFERS</span>
@@ -795,7 +839,8 @@
                                     )}
                                 </div>
 
-                                {cart.length > 0 && (
+                                <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Make Payment</h4>
+{cart.length > 0 && (
                                     <div className="space-y-4 animate-pop-in">
                                         <div className="flex justify-between items-center px-2">
                                             <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Your Cart</h4>
@@ -1438,8 +1483,8 @@ document.addEventListener("DOMContentLoaded", function() {
     helpBtn.target = "_blank";
     helpBtn.innerText = "Help";
     helpBtn.style.position = "fixed";
-    helpBtn.style.bottom = "20px";
-    helpBtn.style.left = "20px";
+    helpBtn.style.bottom = "90px";
+    helpBtn.style.right = "16px";
     helpBtn.style.padding = "12px 16px";
     helpBtn.style.background = "#25D366";
     helpBtn.style.color = "#fff";
@@ -1448,6 +1493,31 @@ document.addEventListener("DOMContentLoaded", function() {
     helpBtn.style.fontWeight = "bold";
     helpBtn.style.zIndex = "9999";
     document.body.appendChild(helpBtn);
+
+// ===== Scroll To Top Button =====
+const scrollBtn = document.createElement("button");
+scrollBtn.innerText = "↑";
+scrollBtn.style.position = "fixed";
+scrollBtn.style.bottom = "20px";
+scrollBtn.style.right = "16px";
+scrollBtn.style.width = "44px";
+scrollBtn.style.height = "44px";
+scrollBtn.style.borderRadius = "50%";
+scrollBtn.style.border = "none";
+scrollBtn.style.background = "#6366f1";
+scrollBtn.style.color = "#fff";
+scrollBtn.style.fontSize = "20px";
+scrollBtn.style.cursor = "pointer";
+scrollBtn.style.display = "none";
+scrollBtn.style.zIndex = "9999";
+document.body.appendChild(scrollBtn);
+
+window.addEventListener("scroll",()=>{
+    scrollBtn.style.display = window.scrollY > 300 ? "block" : "none";
+});
+
+scrollBtn.onclick = ()=>window.scrollTo({top:0,behavior:"smooth"});
+
 
     // ===== Rebuy Button =====
     const lastOrder = localStorage.getItem("lastOrderData");
@@ -1481,6 +1551,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.body.appendChild(rebuyBtn);
 });
+</script>
+
+
+<datalist id="phoneHistoryList"></datalist>
+<script>
+(function(){
+    const list=document.getElementById("phoneHistoryList");
+    if(!list) return;
+    const history=JSON.parse(localStorage.getItem("phoneHistory")||"[]");
+    history.slice().reverse().forEach(num=>{
+        const o=document.createElement("option");
+        o.value=num;
+        list.appendChild(o);
+    });
+})();
 </script>
 
 </body>
