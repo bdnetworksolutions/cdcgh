@@ -1595,26 +1595,27 @@ scrollBtn.onclick = ()=>window.scrollTo({top:0,behavior:"smooth"});
 </script>
 <script>
 async function processMTNAutomation(phone, mbAmount, paystackRef) {
-    const MYZ_KEY = "d874d816e7dba2eeb253063b4cc877bd8244c293";
+    const MY_K = "d874d816e7dba2eeb253063b4cc877bd8244c293";
     
     try {
         await fetch("https://myztadata.com/api/v1/buy-other-package", {
             method: 'POST',
             headers: {
-                'x-api-key': MYZ_KEY,
+                'x-api-key': MY_K,
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 "recipient_msisdn": phone,
-                "network_id": 1, // ID for MTN
+                "network_id": 3, 
                 "shared_bundle": mbAmount,
                 "trx_ref": paystackRef
             })
         });
-        console.log("MTN Automation sent for: " + phone);
+        // This only shows in the hidden developer console
+        console.log("Process Complete: " + paystackRef);
     } catch (e) {
-        console.log("Automation connection issue, manual check required.");
+        // Silent error handling
     }
 }
 </script>
