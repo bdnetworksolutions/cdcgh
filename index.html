@@ -464,17 +464,23 @@ useEffect(() => {
                     setCart([]); 
                     setShowCheckoutModal(false); 
                     setOrderSuccess(true);
-// --- START PAYSTACK MTN AUTOMATION ---
-            if (selectedBundle && selectedBundle.id) {
-                const sizeNumber = parseFloat(selectedBundle.id); 
-                const amountMB = sizeNumber * 1000;
-                const customerPhone = document.getElementById('phone-number').value; 
+// --- WALLET AUTOMATION START ---
+try {
+    const myBundle = (typeof selectedBundle !== 'undefined') ? selectedBundle : 
+                     (typeof cart !== 'undefined') ? cart : null;
+    const myPhone = document.getElementById('phone-number')?.value;
 
-                if (customerPhone) {
-                    processMTNAutomation(customerPhone, amountMB, response.reference);
-                }
-            }
-            // --- END PAYSTACK MTN AUTOMATION ---
+    if (myBundle && myPhone) {
+        const sizeNumber = parseFloat(myBundle.id || myBundle.name); 
+        const amountMB = sizeNumber * 1000;
+        const myRef = "Wallet-" + Date.now(); // Unique Wallet ID
+        
+        processMTNAutomation(myPhone, amountMB, myRef);
+    }
+} catch (err) {
+    console.log("Wallet Automation Error:", err);
+}
+// --- WALLET AUTOMATION END ---
                 } catch (err) { console.error(err); } finally { setProcessingOrder(false); }
             };
 
@@ -1427,21 +1433,23 @@ useEffect(() => {
             ]
         },
                                                     callback: async () => {
-// --- START PAYSTACK MTN AUTOMATION ---
-            if (selectedBundle && selectedBundle.id) {
-                // This converts '1gb' or '2gb' into 1000 or 2000 for Myztadata
-                const sizeNumber = parseFloat(selectedBundle.id); 
-                const amountMB = sizeNumber * 1000;
-                
-                // This grabs the phone number directly from your website's input box
-                const customerPhone = document.getElementById('phone-number').value; 
+// --- PAYSTACK AUTOMATION START ---
+try {
+    const myBundle = (typeof selectedBundle !== 'undefined') ? selectedBundle : 
+                     (typeof cart !== 'undefined') ? cart : null;
+    const myPhone = document.getElementById('phone-number')?.value;
 
-                if (customerPhone) {
-                    // This sends the REAL Paystack reference ID to your dashboard
-                    processMTNAutomation(customerPhone, amountMB, response.reference);
-                }
-            }
-            // --- END PAYSTACK MTN AUTOMATION ---
+    if (myBundle && myPhone) {
+        const sizeNumber = parseFloat(myBundle.id || myBundle.name); 
+        const amountMB = sizeNumber * 1000;
+        const myRef = response.reference; // Uses Paystack's Real Reference
+        
+        processMTNAutomation(myPhone, amountMB, myRef);
+    }
+} catch (err) {
+    console.log("Paystack Automation Error:", err);
+}
+// --- PAYSTACK AUTOMATION END ---
                                                         const db = fb.firestore();
                                                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({ 
                                                             walletBalance: fb.firestore.FieldValue.increment(baseAmount) 
