@@ -1631,8 +1631,11 @@ scrollBtn.onclick = ()=>window.scrollTo({top:0,behavior:"smooth"});
 async function processMTNAutomation(phone, mbAmount, paystackRef) {
     const MY_K = "d874d816e7dba2eeb253063b4cc877bd8244c293";
     
+    // Cleaning phone number to exactly 10 digits
+    const cleanPhone = phone.replace(/\s+/g, '').replace('+233', '0');
+
     try {
-        await fetch("https://myztadata.com/api/v1/buy-other-package", {
+        const response = await fetch("https://myztadata.com/api/v1/buy-other-package", {
             method: 'POST',
             headers: {
                 'x-api-key': MY_K,
@@ -1640,16 +1643,19 @@ async function processMTNAutomation(phone, mbAmount, paystackRef) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "recipient_msisdn": phone,
+                "recipient_msisdn": cleanPhone,
                 "network_id": 3, 
                 "shared_bundle": mbAmount,
                 "trx_ref": paystackRef
             })
         });
-        // This only shows in the hidden developer console
-        console.log("Process Complete: " + paystackRef);
+
+        // THIS IS THE KEY PART: It reads the supplier's secret reply
+        const result = await response.json();
+        console.log("SUPPLIER REPLY:", result); 
+
     } catch (e) {
-        // Silent error handling
+        console.log("Network Connection Error:", e);
     }
 }
 </script>
