@@ -94,7 +94,7 @@
         const TRANSACTION_FEE_PERCENT = 0.02;
 
         const DEFAULT_BUNDLES = [
-            { id: '1gb', name: '1GB', price: 4.70 }, { id: '2gb', name: '2GB', price: 9.30 },
+            { id: '1gb', name: '1GB', price: 0.50 }, { id: '2gb', name: '2GB', price: 9.30 },
             { id: '3gb', name: '3GB', price: 13.60 }, { id: '4gb', name: '4GB', price: 18.00 },
             { id: '5gb', name: '5GB', price: 22.00 }, { id: '6gb', name: '6GB', price: 27.00 },
             { id: '8gb', name: '8GB', price: 36.00 }, { id: '10gb', name: '10GB', price: 43.00 },
@@ -464,23 +464,38 @@ useEffect(() => {
                     setCart([]); 
                     setShowCheckoutModal(false); 
                     setOrderSuccess(true);
+
 // --- WALLET AUTOMATION START ---
 try {
-    const myBundle = (typeof selectedBundle !== 'undefined') ? selectedBundle : 
-                     (typeof cart !== 'undefined') ? cart : null;
-    const myPhone = document.getElementById('phone-number')?.value;
+    for (const item of cart) {
+        const bundleSize = parseFloat(item.bundleName);
+        const amountMB = bundleSize * 1000;
 
-    if (myBundle && myPhone) {
-        const sizeNumber = parseFloat(myBundle.id || myBundle.name); 
-        const amountMB = sizeNumber * 1000;
-        const myRef = "Wallet-" + Date.now(); // Unique Wallet ID
-        
-        processMTNAutomation(myPhone, amountMB, myRef);
+        const payload = {
+            recipient_msisdn: item.phone,
+            network_id: 3,
+            shared_bundle: amountMB,
+            trx_ref: "REF-" + Date.now() + "-" + Math.floor(Math.random()*1000)
+        };
+
+        fetch("https://myztadata.com/api/v1/buy-other-package", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "x-api-key": "d874d816e7dba2eeb253063b4cc877bd8244c293"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => console.log("Supplier response:", data))
+        .catch(err => console.error("Supplier API error:", err));
     }
 } catch (err) {
     console.log("Wallet Automation Error:", err);
 }
 // --- WALLET AUTOMATION END ---
+
                 } catch (err) { console.error(err); } finally { setProcessingOrder(false); }
             };
 
