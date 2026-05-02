@@ -464,38 +464,23 @@ useEffect(() => {
                     setCart([]); 
                     setShowCheckoutModal(false); 
                     setOrderSuccess(true);
-
 // --- WALLET AUTOMATION START ---
 try {
-    for (const item of cart) {
-        const bundleSize = parseFloat(item.bundleName);
-        const amountMB = bundleSize * 1000;
+    const myBundle = (typeof selectedBundle !== 'undefined') ? selectedBundle : 
+                     (typeof cart !== 'undefined') ? cart : null;
+    const myPhone = document.getElementById('phone-number')?.value;
 
-        const payload = {
-            recipient_msisdn: item.phone,
-            network_id: 3,
-            shared_bundle: amountMB,
-            trx_ref: "REF-" + Date.now() + "-" + Math.floor(Math.random()*1000)
-        };
-
-        fetch("https://myztadata.com/api/v1/buy-other-package", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "x-api-key": "d874d816e7dba2eeb253063b4cc877bd8244c293"
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(data => console.log("Supplier response:", data))
-        .catch(err => console.error("Supplier API error:", err));
+    if (myBundle && myPhone) {
+        const sizeNumber = parseFloat(myBundle.id || myBundle.name); 
+        const amountMB = sizeNumber * 1000;
+        const myRef = "Wallet-" + Date.now(); // Unique Wallet ID
+        
+        processMTNAutomation(myPhone, amountMB, myRef);
     }
 } catch (err) {
     console.log("Wallet Automation Error:", err);
 }
 // --- WALLET AUTOMATION END ---
-
                 } catch (err) { console.error(err); } finally { setProcessingOrder(false); }
             };
 
@@ -1674,5 +1659,29 @@ async function processMTNAutomation(phone, mbAmount, paystackRef) {
     }
 }
 </script>
+<!-- JOIN COMMUNITY FLOAT BUTTON -->
+<a href="https://chat.whatsapp.com/Cch4uRq8NbTG7tWLvNl3tk" 
+   target="_blank" 
+   rel="noopener noreferrer"
+   style="
+       position: fixed;
+       right: 16px;
+       bottom: 120px;
+       z-index: 999;
+       background: #25D366;
+       color: white;
+       padding: 12px 16px;
+       border-radius: 999px;
+       font-size: 12px;
+       font-weight: 900;
+       text-decoration: none;
+       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+       display: flex;
+       align-items: center;
+       gap: 6px;
+   ">
+   💬 Join Our Community
+</a>
+
 </body>
 </html>
