@@ -35,6 +35,91 @@
     </style>
 </head>
 <body>
+
+<div id="trust-highlights-bar">
+    <div class="highlight-item"><span class="ripple"></span>⚡ Automated System</div>
+    <div class="highlight-item"><span class="ripple"></span>🕒 24/7 Delivery Service</div>
+    <div class="highlight-item"><span class="ripple"></span>🚀 Quick Delivery</div>
+    <div class="highlight-item"><span class="ripple"></span>💰 Affordable Pricing</div>
+    <div class="highlight-item"><span class="ripple"></span>📱 MTN Orders Only</div>
+</div>
+
+<style>
+    #trust-highlights-bar {
+        width: 100%;
+        background: #0a0a14; /* Deep dark background */
+        color: #a29bfe; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap; /* This makes it responsive! */
+        padding: 10px 5px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 11px; /* Smaller font for mobile-first look */
+        font-weight: 700;
+        border-bottom: 1px solid rgba(162, 155, 254, 0.15);
+        z-index: 10000;
+        position: relative;
+        text-align: center;
+    }
+
+    .highlight-item {
+        margin: 4px 10px;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .ripple {
+        height: 6px;
+        width: 6px;
+        background-color: #00ff88;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+        position: relative;
+    }
+
+    .ripple::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: #00ff88;
+        border-radius: 50%;
+        animation: ripple-animation 1.5s infinite;
+    }
+
+    @keyframes ripple-animation {
+        0% { transform: scale(1); opacity: 0.8; }
+        100% { transform: scale(3); opacity: 0; }
+    }
+
+    /* Extra small screens adjustment */
+    @media (max-width: 400px) {
+        #trust-highlights-bar {
+            font-size: 9px;
+            padding: 6px 2px;
+        }
+        .highlight-item {
+            margin: 2px 5px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Hides bar if a user session exists
+        const userActive = localStorage.getItem("token") || sessionStorage.getItem("user"); 
+        if (userActive) {
+            const bar = document.getElementById("trust-highlights-bar");
+            if(bar) bar.style.display = "none";
+        }
+    });
+</script>
+
     <div id="root"></div>
 
     <script type="text/javascript" src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app-compat.js"></script>
@@ -93,6 +178,10 @@
         const PAYSTACK_PUBLIC_KEY = "pk_live_67e25636b35278bfadbfdaa6fb8e4e0d77f2f105";
         const TRANSACTION_FEE_PERCENT = 0.02;
 
+        const MYZTA_API_KEY = "d874d816e7dba2eeb253063b4cc877bd8244c293";
+        const MYZTA_BASE_URL = "https://myztadata.com/api/v1";
+
+
         const DEFAULT_BUNDLES = [
             { id: '1gb', name: '1GB', price: 4.70 }, { id: '2gb', name: '2GB', price: 9.30 },
             { id: '3gb', name: '3GB', price: 13.60 }, { id: '4gb', name: '4GB', price: 18.00 },
@@ -101,6 +190,49 @@
             { id: '15gb', name: '15GB', price: 63.00 }, { id: '20gb', name: '20GB', price: 83.00 },
             { id: '30gb', name: '30GB', price: 122.00 },
         ];
+
+        
+        async function processMTNAutomation(phoneNumber, amountMB, trxRef) {
+            try {
+                console.log("Starting MTN automation:", {
+                    phoneNumber,
+                    amountMB,
+                    trxRef
+                });
+
+                const response = await fetch(`${MYZTA_BASE_URL}/buy-other-package`, {
+                    method: "POST",
+                    headers: {
+                        "x-api-key": MYZTA_API_KEY,
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        recipient_msisdn: phoneNumber,
+                        network_id: 3,
+                        shared_bundle: amountMB,
+                        trx_ref: trxRef
+                    })
+                });
+
+                const result = await response.json();
+
+                console.log("MTN Automation Response:", result);
+
+                if (!response.ok || result.success !== true) {
+                    console.error("MTN Automation Failed:", result);
+                    return false;
+                }
+
+                console.log("MTN Automation Successful:", result);
+                return true;
+
+            } catch (error) {
+                console.error("MTN Automation Error:", error);
+                return false;
+            }
+        }
+
 
         function App() {
             const [fb, setFb] = useState(null);
@@ -454,6 +586,37 @@ useEffect(() => {
                     }));
                     
                     await Promise.all(orderPromises);
+
+                    // AUTOMATED MTN ORDER FLOW
+                    for (const item of cart) {
+                        try {
+                            const bundleSize = parseFloat(item.bundleName.replace("GB", ""));
+                            const amountMB = Math.round(bundleSize * 1000);
+
+                            const trxRef = `MTN-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+
+                            console.log("Processing automated MTN order:", {
+                                phone: item.phone,
+                                bundle: item.bundleName,
+                                amountMB,
+                                trxRef,
+                                paymentMethod: method
+                            });
+
+                            const automationResult = await processMTNAutomation(
+                                item.phone,
+                                amountMB,
+                                trxRef
+                            );
+
+                            if (!automationResult) {
+                                console.error("Automation failed for order:", item);
+                            }
+
+                        } catch (automationError) {
+                            console.error("Automation processing exception:", automationError);
+                        }
+                    }
                     
                     if (method === 'wallet') {
                         await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(user.uid).update({ 
@@ -464,23 +627,7 @@ useEffect(() => {
                     setCart([]); 
                     setShowCheckoutModal(false); 
                     setOrderSuccess(true);
-// --- WALLET AUTOMATION START ---
-try {
-    const myBundle = (typeof selectedBundle !== 'undefined') ? selectedBundle : 
-                     (typeof cart !== 'undefined') ? cart : null;
-    const myPhone = document.getElementById('phone-number')?.value;
 
-    if (myBundle && myPhone) {
-        const sizeNumber = parseFloat(myBundle.id || myBundle.name); 
-        const amountMB = sizeNumber * 1000;
-        const myRef = "Wallet-" + Date.now(); // Unique Wallet ID
-        
-        processMTNAutomation(myPhone, amountMB, myRef);
-    }
-} catch (err) {
-    console.log("Wallet Automation Error:", err);
-}
-// --- WALLET AUTOMATION END ---
                 } catch (err) { console.error(err); } finally { setProcessingOrder(false); }
             };
 
@@ -789,7 +936,7 @@ try {
                     </header>
                     {/* Delivery Notice */}
                     <div className="mx-6 mt-4 p-4 rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-300 text-[11px] font-bold leading-relaxed">
-                         All pending orders are being processed. Keep your orders coming. If you have any complaints kindly hit the help button.<br />
+                        MTN BUNDLES ONLY. DELIVERY IS MOVING SMOOTHLY. KEEP SENDING YOUR ORDERS. Kindly join our community to receive daily updates. If you have any complaints kindly hit the help button.<br />
                       
                     </div>
 
@@ -1660,28 +1807,101 @@ async function processMTNAutomation(phone, mbAmount, paystackRef) {
 }
 </script>
 <!-- JOIN COMMUNITY FLOAT BUTTON -->
-<a href="https://chat.whatsapp.com/Cch4uRq8NbTG7tWLvNl3tk" 
-   target="_blank" 
-   rel="noopener noreferrer"
-   style="
-       position: fixed;
-       right: 16px;
-       bottom: 120px;
-       z-index: 999;
-       background: #25D366;
-       color: white;
-       padding: 12px 16px;
-       border-radius: 999px;
-       font-size: 12px;
-       font-weight: 900;
-       text-decoration: none;
-       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-       display: flex;
-       align-items: center;
-       gap: 6px;
-   ">
-   💬 Join Our Community
-</a>
+<!-- 1. THE BUTTON HTML -->
+<div id="movableCommunityBtn" 
+     style="position: fixed; right: 16px; bottom: 120px; z-index: 10000; touch-action: none; cursor: move;">
+    
+    <a href="https://chat.whatsapp.com/Cch4uRq8NbTG7tWLvNl3tk" 
+       target="_blank" 
+       rel="noopener noreferrer" 
+       id="communityLink"
+       style="
+         background: #25D366;
+         color: white;
+         padding: 10px 16px;
+         border-radius: 50px;
+         font-size: 14px;
+         font-weight: 600;
+         text-decoration: none;
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         font-family: Arial, sans-serif;
+         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+         white-space: nowrap;
+         user-select: none;
+       ">
+        <span style="font-size: 18px;"></span> 
+        Join our community
+    </a>
+
+    <style>
+        /* Ripple effect animation */
+        #movableCommunityBtn {
+            animation: pulse-glow 2s infinite;
+            border-radius: 50px;
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+    </style>
+
+    <script>
+        (function() {
+            const el = document.getElementById("movableCommunityBtn");
+            const link = document.getElementById("communityLink");
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            // Prevent the link from opening if we are dragging
+            link.addEventListener('click', (e) => {
+                if (isDragging) e.preventDefault();
+            });
+
+            const onStart = (e) => {
+                isDragging = false;
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                startX = clientX;
+                startY = clientY;
+                initialX = el.offsetLeft;
+                initialY = el.offsetTop;
+                
+                document.addEventListener(e.type.includes('touch') ? 'touchmove' : 'mousemove', onMove);
+                document.addEventListener(e.type.includes('touch') ? 'touchend' : 'mouseup', onEnd);
+            };
+
+            const onMove = (e) => {
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    isDragging = true;
+                }
+
+                // Update position
+                el.style.left = (initialX + dx) + 'px';
+                el.style.top = (initialY + dy) + 'px';
+                el.style.right = 'auto';
+                el.style.bottom = 'auto';
+            };
+
+            const onEnd = (e) => {
+                document.removeEventListener(e.type.includes('touch') ? 'touchmove' : 'mousemove', onMove);
+                document.removeEventListener(e.type.includes('touch') ? 'touchend' : 'mouseup', onEnd);
+            };
+
+            el.addEventListener('mousedown', onStart);
+            el.addEventListener('touchstart', onStart, { passive: true });
+        })();
+    </script>
+</div>
 
 </body>
 </html>
